@@ -1,0 +1,212 @@
+type KVData @jsonField {
+  key: String
+  value: String
+  type: String
+}
+
+type Block @entity {
+  id: ID!
+
+  hash: String
+  number: BigInt
+  timestamp: Date
+}
+
+type Extrinsic @entity {
+  id: ID!
+
+  hash: String
+  block: Block
+}
+
+type Collateral @entity {
+  id: ID!
+
+  name: String
+  decimals: Int
+}
+
+type Account @entity {
+  id: ID! # user address
+
+  address: String
+  txCount: BigInt
+
+  provisions: [UserProvision] @derivedFrom(field: "pool")
+}
+
+type ProvisionPool @entity {
+  id: ID!
+
+  poolToken: Collateral
+  token0: Collateral
+  token1: Collateral
+
+  token0Amount: String
+  token1Amount: String
+
+  initializeShare: String
+
+  startAtBlockNumber: BigInt
+  startAtBlock: Block
+
+  endAtBlockNumber: BigInt
+  endAtBlock: Block
+
+  txCount: BigInt
+
+  records: [UserProvision] @derivedFrom(field: "pool")
+}
+
+type UserProvision @entity {
+  id: ID!
+
+  owner: Account
+
+  pool: ProvisionPool
+  token0: Collateral
+  token1: Collateral
+
+  token0Amount: String
+  token1Amount: String
+}
+
+type Pool @entity {
+  id: ID!
+
+  token0: Collateral
+  token1: Collateral
+
+  token0Amount: String
+  token1Amount: String
+
+  # the exchange ratio token0:token1
+  exchange0: String
+  # the exchange ratio token1:token0
+  exchange1: String
+
+  fee: String
+
+  token0Volume: String
+  token1Volume: String
+  volumeUSD: String
+
+  token0TVL: String
+  token1TVL: String
+  tvlUSD: String
+
+  txCount: BigInt
+
+  hourData: [HourPool] @derivedFrom(field: "pool")
+  dayData: [DailyPool] @derivedFrom(field: "pool")
+  records: [DexHistory] @derivedFrom(field: "pool")
+}
+
+type HourPool @entity {
+  id: ID!
+
+  pool: Pool
+  timestamp: Date
+
+  token0: Collateral
+  token1: Collateral
+
+  token0Amount: String
+  token1Amount: String
+  exchange0: String
+  exchange1: String
+
+  volumeToken0: String
+  volumeToken1: String
+  volumeUSD: String
+
+  txCount: BigInt
+
+  tvlUSD: String
+
+  token0Open: String
+  token0High: String
+  token0Low: String
+  token0Close: String
+}
+
+type DailyPool @entity {
+  id: ID!
+
+  pool: Pool
+  token0: Collateral!
+  token1: Collateral!
+
+  timestamp: Date
+
+  token0Amount: String
+  token1Amount: String
+  exchange0: String
+  exchange1: String
+
+  volumeToken0: String
+  volumeToken1: String
+  volumeUSD: String
+
+  txCount: BigInt
+
+  tvlUSD: String
+
+  token0Open: String
+  token0High: String
+  token0Low: String
+  token0Close: String
+}
+
+type Dex @entity {
+  id: ID!
+
+  poolCount: Int
+
+  totalVolumeUSD: String
+  totalTVLUSD: String
+}
+
+type HourDex @entity {
+  id: ID!
+
+  poolCount: Int
+  timestamp: Date
+
+  dailyVolumeUSD: String
+
+  totalVolumeUSD: String
+  totalTVLUSD: String
+}
+
+type DailyDex @entity {
+  id: ID!
+
+  poolCount: Int
+  timestamp: Date
+
+  dailyVolumeUSD: String
+
+  totalVolumeUSD: String
+  totalTVLUSD: String
+}
+
+type DexHistory @entity {
+  id: ID!
+
+  account: Account
+
+  type: String
+  subType: String
+  data: [KVData]
+
+  pool: Pool
+  token0: Collateral
+  token1: Collateral
+  token0Amount: String
+  token1Amount: String
+  volumeUSD: String
+
+  extrinsic: Extrinsic
+  timestamp: Date
+}
