@@ -20,13 +20,9 @@ export class UserProvision implements Entity {
 
     public poolId?: string;
 
-    public token0Id?: string;
+    public token0Amount?: bigint;
 
-    public token1Id?: string;
-
-    public token0Amount?: string;
-
-    public token1Amount?: string;
+    public token1Amount?: bigint;
 
 
     async save(): Promise<void>{
@@ -60,20 +56,6 @@ export class UserProvision implements Entity {
     static async getByPoolId(poolId: string): Promise<UserProvision[] | undefined>{
       
       const records = await store.getByField('UserProvision', 'poolId', poolId);
-      return records.map(record => UserProvision.create(record as UserProvisionProps));
-      
-    }
-
-    static async getByToken0Id(token0Id: string): Promise<UserProvision[] | undefined>{
-      
-      const records = await store.getByField('UserProvision', 'token0Id', token0Id);
-      return records.map(record => UserProvision.create(record as UserProvisionProps));
-      
-    }
-
-    static async getByToken1Id(token1Id: string): Promise<UserProvision[] | undefined>{
-      
-      const records = await store.getByField('UserProvision', 'token1Id', token1Id);
       return records.map(record => UserProvision.create(record as UserProvisionProps));
       
     }

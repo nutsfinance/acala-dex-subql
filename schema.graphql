@@ -1,161 +1,249 @@
-type KVData @jsonField {
-  key: String
-  value: String
-  type: String
-}
-
 type Block @entity {
-  id: ID!
-
+  id: ID! # block number
   hash: String
   number: BigInt
   timestamp: Date
 }
 
 type Extrinsic @entity {
-  id: ID!
-
+  id: ID! # extrinsic hash
   hash: String
   block: Block
-}
 
-type Collateral @entity {
-  id: ID!
-
-  name: String
-  decimals: Int
+  address: Account
+  method: String
+  section: String
 }
 
 type Account @entity {
   id: ID! # user address
-
   address: String
   txCount: BigInt
 
-  provisions: [UserProvision] @derivedFrom(field: "pool")
+  userProvision: [UserProvision] @derivedFrom(field: "owner")
+
+  # history
+  addProvision: [AddProvision] @derivedFrom(field: "address")
+  addLiquidity: [AddLiquidity] @derivedFrom(field: "address")
+  removeLiquidity: [RemoveLiquidity] @derivedFrom(field: "address")
+  swap: [Swap] @derivedFrom(field: "address")
+}
+
+type Token @entity {
+  id: ID!
+
+  name: String
+  decimals: Int
+
+  # modify [addprovison, addLiquidity, removeLiquidity, swap]
+  amount: BigInt # total amount in every pool
+  # modify [addprovison, addLiquidity, removeLiquidity, swap]
+  tvl: BigInt # total TVL in every pool
+  # modify [addLiquidity, removeLiquidity, swap]
+  tradeVolume: BigInt # total trade volume
+  # modify [addLiquidity, removeLiquidity, swap]
+  tradeVolumeUSD: BigInt # total trade volume in USD
+  # modify [addprovison, addLiquidity, removeLiquidity, swap]
+  txCount: BigInt
+  # modify [listprovison]
+  poolCount: Int # pool count relate to the token
+
+  dailyData: [TokenDailyData] @derivedFrom(field: "token")
+  provisionPoolBase: [ProvisionPool] @derivedFrom(field: "token0")
+  provisionPoolQuote: [ProvisionPool] @derivedFrom(field: "token1")
+  poolBase: [Pool] @derivedFrom(field: "token0")
+  poolQuote: [Pool] @derivedFrom(field: "token1")
+}
+
+type TokenDailyData @entity {
+  id: ID! # token-timestamp
+
+  token: Token!
+
+  amount: BigInt! # total amount in every pool
+  tvl: BigInt! # total TVL in every pool
+  dailyTradeVolume: BigInt! # total trade volume
+  dailyTradeVolumeUSD: BigInt! # total trade volume in USD
+  dailyTxCount: BigInt!
+
+  timestamp: Date
 }
 
 type ProvisionPool @entity {
-  id: ID!
+  id: ID! #token0-token1
 
-  poolToken: Collateral
-  token0: Collateral
-  token1: Collateral
+  pool: Token
+  token0: Token
+  token1: Token
 
-  token0Amount: String
-  token1Amount: String
+  token0Amount: BigInt
+  token1Amount: BigInt
 
-  initializeShare: String
+  initializeShare: BigInt
 
-  startAtBlockNumber: BigInt
+  startAt: Date
   startAtBlock: Block
-
-  endAtBlockNumber: BigInt
+  endAt: Date
   endAtBlock: Block
 
   txCount: BigInt
 
-  records: [UserProvision] @derivedFrom(field: "pool")
+  hourlyData: [ProvisionPoolHourlyData] @derivedFrom(field: "pool")
+  userProvisions: [UserProvision] @derivedFrom(field: "pool")
+
+  # history
+  addProvision: [AddProvision] @derivedFrom(field: "pool")
+  provisionToEnabled: [ProvisionToEnabled] @derivedFrom(field: "pool")
+  listProvision: [ListProvision] @derivedFrom(field: "pool")
+}
+
+type ProvisionPoolHourlyData @entity {
+  id: ID! # token0-token1-time
+  pool: Token
+
+  token0Amount: BigInt
+  token1Amount: BigInt
+  price0: BigInt
+  price1: BigInt
+  hourlyToken0InAmount: BigInt
+  hourlyToken1InAmount: BigInt
+
+  timestamp: Date
 }
 
 type UserProvision @entity {
-  id: ID!
-
+  id: ID! #token0-token1-user
   owner: Account
 
   pool: ProvisionPool
-  token0: Collateral
-  token1: Collateral
 
-  token0Amount: String
-  token1Amount: String
+  token0Amount: BigInt
+  token1Amount: BigInt
 }
 
 type Pool @entity {
-  id: ID!
+  id: ID! # token0-token1
+  token0: Token
+  token1: Token
 
-  token0: Collateral
-  token1: Collateral
+  # amount * price
+  token0Amount: BigInt
+  token1Amount: BigInt
+  token0Price: BigInt
+  token1Price: BigInt
+  # total trade fee accumulate
+  feeVolume: BigInt
+  feeToken0Amount: BigInt
+  feeToken1Amount: BigInt
 
-  token0Amount: String
-  token1Amount: String
+  token0TradeVolume: BigInt
+  token1TradeVolume: BigInt
+  tradeVolumeUSD: BigInt
 
-  # the exchange ratio token0:token1
-  exchange0: String
-  # the exchange ratio token1:token0
-  exchange1: String
-
-  fee: String
-
-  token0Volume: String
-  token1Volume: String
-  volumeUSD: String
-
-  token0TVL: String
-  token1TVL: String
-  tvlUSD: String
+  token0TVL: BigInt
+  token1TVL: BigInt
+  totalTVL: BigInt
 
   txCount: BigInt
 
-  hourData: [HourPool] @derivedFrom(field: "pool")
+  hourlyData: [HourlyPool] @derivedFrom(field: "pool")
   dayData: [DailyPool] @derivedFrom(field: "pool")
-  records: [DexHistory] @derivedFrom(field: "pool")
 }
 
-type HourPool @entity {
-  id: ID!
-
+type HourlyPool @entity {
+  id: ID! # token0-token1-timestamp
   pool: Pool
   timestamp: Date
 
-  token0: Collateral
-  token1: Collateral
+  token0: Token
+  token1: Token
 
-  token0Amount: String
-  token1Amount: String
-  exchange0: String
-  exchange1: String
+  # amount & price
+  token0Amount: BigInt
+  token1Amount: BigInt
+  token0Price: BigInt
+  token1Price: BigInt
 
-  volumeToken0: String
-  volumeToken1: String
-  volumeUSD: String
+  # total trade fee accumulate
+  feeVolumeUSD: BigInt
+  feeToken0Amount: BigInt
+  feeToken1Amount: BigInt
+
+  # hourly trade volume
+  hourlyToken0TradeVolume: BigInt
+  hourlyToken1TradeVolume: BigInt
+  hourlyTradeVolumeUSD: BigInt
+
+  # trade volume
+  token0TradeVolume: BigInt
+  token1TradeVolume: BigInt
+  tradeVolumeUSD: BigInt
+
+  # TVL
+  token0TVL: BigInt
+  token1TVL: BigInt
+  totalTVL: BigInt
 
   txCount: BigInt
 
-  tvlUSD: String
+  # for track price change
+  token0Open: BigInt
+  token0High: BigInt
+  token0Low: BigInt
+  token0Close: BigInt
 
-  token0Open: String
-  token0High: String
-  token0Low: String
-  token0Close: String
+  token1Open: BigInt
+  token1High: BigInt
+  token1Low: BigInt
+  token1Close: BigInt
 }
 
 type DailyPool @entity {
-  id: ID!
-
+  id: ID! # token0-token1-timestamp
   pool: Pool
-  token0: Collateral!
-  token1: Collateral!
-
   timestamp: Date
 
-  token0Amount: String
-  token1Amount: String
-  exchange0: String
-  exchange1: String
+  token0: Token
+  token1: Token
 
-  volumeToken0: String
-  volumeToken1: String
-  volumeUSD: String
+  # amount & price
+  token0Amount: BigInt
+  token1Amount: BigInt
+  token0Price: BigInt
+  token1Price: BigInt
+
+  # total trade fee accumulate
+  feeVolumeUSD: BigInt
+  feeToken0Amount: BigInt
+  feeToken1Amount: BigInt
+
+  # daily trade volume
+  dailyToken0TradeVolume: BigInt
+  dailyToken1TradeVolume: BigInt
+  dailyTradeVolumeUSD: BigInt
+
+  # trade volume
+  token0TradeVolume: BigInt
+  token1TradeVolume: BigInt
+  tradeVolumeUSD: BigInt
+
+  # TVL
+  token0TVL: BigInt
+  token1TVL: BigInt
+  totalTVL: BigInt
 
   txCount: BigInt
 
-  tvlUSD: String
+  # for track price change
+  token0Open: BigInt
+  token0High: BigInt
+  token0Low: BigInt
+  token0Close: BigInt
 
-  token0Open: String
-  token0High: String
-  token0Low: String
-  token0Close: String
+  token1Open: BigInt
+  token1High: BigInt
+  token1Low: BigInt
+  token1Close: BigInt
 }
 
 type Dex @entity {
@@ -163,50 +251,137 @@ type Dex @entity {
 
   poolCount: Int
 
-  totalVolumeUSD: String
-  totalTVLUSD: String
+  tradeVolumeUSD: BigInt # total trade volume
+  totalTVL: BigInt
+
+  hourlyDex: [HourDex]
+  dailyDex: [DailyDex]
 }
 
 type HourDex @entity {
   id: ID!
 
   poolCount: Int
+
+  hourlyTradeVolumeUSD: BigInt
+
+  tradeVolumeUSD: BigInt # total trade volume
+  totalTVL: BigInt # total tvl
   timestamp: Date
-
-  dailyVolumeUSD: String
-
-  totalVolumeUSD: String
-  totalTVLUSD: String
 }
 
 type DailyDex @entity {
   id: ID!
 
   poolCount: Int
+
+  dailyTradeVolumeUSD: BigInt
+
+  tradeVolumeUSD: BigInt # total trade volume
+  totalTVL: BigInt # total tvl
   timestamp: Date
-
-  dailyVolumeUSD: String
-
-  totalVolumeUSD: String
-  totalTVLUSD: String
 }
 
-type DexHistory @entity {
+type PriceBundle @entity {
+  id: ID!
+  block: Block
+
+  Token: Token
+  price: BigInt
+}
+
+# history entities
+type ProvisionToEnabled @entity {
   id: ID!
 
-  account: Account
+  address: Account
+  pool: Token
 
-  type: String
-  subType: String
-  data: [KVData]
+  token0: Token
+  token1: Token
+  token0Amount: BigInt
+  token1Amount: BigInt
+  totalShareAmount: BigInt
 
-  pool: Pool
-  token0: Collateral
-  token1: Collateral
-  token0Amount: String
-  token1Amount: String
-  volumeUSD: String
-
+  block: Block
   extrinsic: Extrinsic
   timestamp: Date
+}
+
+type ListProvision @entity {
+  id: ID!
+
+  pool: Token
+
+  token0: Token
+  token1: Token
+
+  block: Block
+  extrinsic: Extrinsic
+  timestamp: Date
+}
+
+type AddProvision @entity {
+  id: ID!
+
+  address: Account
+  pool: Token
+
+  token0: Token
+  token1: Token
+  token0Amount: BigInt
+  token1Amount: BigInt
+  price0: BigInt
+  price1: BigInt
+
+  block: Block
+  extrinsic: Extrinsic
+  timestamp: Date
+}
+
+type AddLiquidity @entity {
+  id: ID!
+
+  address: Account
+  pool: Token
+
+  token0: Token
+  token1: Token
+  token0Amount: BigInt
+  token1Amount: BigInt
+  price0: BigInt
+  price1: BigInt
+
+  block: Block
+  extrinsic: Extrinsic
+  timestamp: Date
+}
+
+type RemoveLiquidity @entity {
+  id: ID!
+
+  address: Account
+  pool: Token
+
+  token0: Token
+  token1: Token
+  token0Amount: BigInt
+  token1Amount: BigInt
+  shareAmount: BigInt
+  price0: BigInt
+  price1: BigInt
+
+  block: Block
+  extrinsic: Extrinsic
+  timestamp: Date
+}
+
+type Swap @entity {
+  id: ID!
+
+  address: Account
+  pool: Token
+
+  token0: Token
+  token1: Token
 }

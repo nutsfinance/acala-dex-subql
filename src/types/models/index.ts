@@ -6,17 +6,21 @@ export {Block} from "./Block"
 
 export {Extrinsic} from "./Extrinsic"
 
-export {Collateral} from "./Collateral"
-
 export {Account} from "./Account"
 
+export {Token} from "./Token"
+
+export {TokenDailyData} from "./TokenDailyData"
+
 export {ProvisionPool} from "./ProvisionPool"
+
+export {ProvisionPoolHourlyData} from "./ProvisionPoolHourlyData"
 
 export {UserProvision} from "./UserProvision"
 
 export {Pool} from "./Pool"
 
-export {HourPool} from "./HourPool"
+export {HourlyPool} from "./HourlyPool"
 
 export {DailyPool} from "./DailyPool"
 
@@ -26,5 +30,17 @@ export {HourDex} from "./HourDex"
 
 export {DailyDex} from "./DailyDex"
 
-export {DexHistory} from "./DexHistory"
+export {PriceBundle} from "./PriceBundle"
+
+export {ProvisionToEnabled} from "./ProvisionToEnabled"
+
+export {ListProvision} from "./ListProvision"
+
+export {AddProvision} from "./AddProvision"
+
+export {AddLiquidity} from "./AddLiquidity"
+
+export {RemoveLiquidity} from "./RemoveLiquidity"
+
+export {Swap} from "./Swap"
 

@@ -18,9 +18,13 @@ export class Dex implements Entity {
 
     public poolCount?: number;
 
-    public totalVolumeUSD?: string;
+    public tradeVolumeUSD?: bigint;
 
-    public totalTVLUSD?: string;
+    public totalTVL?: bigint;
+
+    public hourlyDexId?: string[];
+
+    public dailyDexId?: string[];
 
 
     async save(): Promise<void>{
@@ -43,6 +47,20 @@ export class Dex implements Entity {
         }
     }
 
+
+    static async getByHourlyDexId(hourlyDexId: string): Promise<Dex[] | undefined>{
+      
+      const records = await store.getByField('Dex', 'hourlyDexId', hourlyDexId);
+      return records.map(record => Dex.create(record as DexProps));
+      
+    }
+
+    static async getByDailyDexId(dailyDexId: string): Promise<Dex[] | undefined>{
+      
+      const records = await store.getByField('Dex', 'dailyDexId', dailyDexId);
+      return records.map(record => Dex.create(record as DexProps));
+      
+    }
 
 
     static create(record: DexProps): Dex {

@@ -1,16 +1,25 @@
 import { getTokenDecimals } from ".";
 import {
-  Account, Collateral, Block, Extrinsic
+  Account, Block, Extrinsic,
+  AddLiquidity,
+  AddProvision,
+  DailyDex,
+  DailyPool,
+  Dex,
+  HourDex,
+  HourlyPool,
+  ListProvision,
+  Pool,
+  PriceBundle,
+  ProvisionPool,
+  ProvisionPoolHourlyData,
+  ProvisionToEnabled,
+  RemoveLiquidity,
+  Swap,
+  Token,
+  TokenDailyData,
+  UserProvision
 } from "../types";
-import { DailyDex } from "../types/models/DailyDex";
-import { DailyPool } from "../types/models/DailyPool";
-import { Dex } from "../types/models/Dex";
-import { DexHistory } from "../types/models/DexHistory";
-import { HourDex } from "../types/models/HourDex";
-import { HourPool } from "../types/models/HourPool";
-import { Pool } from "../types/models/Pool";
-import { ProvisionPool } from "../types/models/ProvisionPool";
-import { UserProvision } from "../types/models/UserProvision";
 
 export const getAccount = async (address: string) => {
   const _account = await Account.get(address);
@@ -39,13 +48,18 @@ export const getBlock = async (id: string) => {
   }
 }
 
-export const getCollateral = async (token: string) => {
-  const _collateral = await Collateral.get(token);
+export const getToken = async (token: string) => {
+  const _collateral = await Token.get(token);
   const decimals = await getTokenDecimals(api as any, token);
   if (!_collateral) {
-    const newCollateral = new Collateral(token);
+    const newCollateral = new Token(token);
     newCollateral.name = token;
-    newCollateral.decimals = decimals;
+    newCollateral.amount = BigInt(0);
+    newCollateral.tvl = BigInt(0);
+    newCollateral.tradeVolume = BigInt(0);
+    newCollateral.tradeVolumeUSD = BigInt(0);
+    newCollateral.txCount = BigInt(0);
+    newCollateral.poolCount = 0;
     await newCollateral.save();
     return newCollateral;
   } else {
@@ -56,13 +70,13 @@ export const getCollateral = async (token: string) => {
 export const getDailyDex = async (id: string) => {
   const record = await DailyDex.get(id);
 
-  if(!record) {
+  if (!record) {
     const newRecord = new DailyDex(id);
     newRecord.poolCount = 0;
     newRecord.timestamp = new Date();
-    newRecord.dailyVolumeUSD = '';
-    newRecord.totalTVLUSD = '';
-    newRecord.totalVolumeUSD = '';
+    newRecord.dailyTradeVolumeUSD = BigInt(0);
+    newRecord.tradeVolumeUSD = BigInt(0);
+    newRecord.totalTVL = BigInt(0);
   } else {
     return record;
   }
@@ -72,25 +86,38 @@ export const getDailyDex = async (id: string) => {
 export const getDailyPool = async (id: string) => {
   const record = await DailyPool.get(id);
 
-  if(!record) {
+  if (!record) {
     const newRecord = new DailyPool(id);
     newRecord.poolId = '';
     newRecord.token0Id = '';
     newRecord.token1Id = '';
     newRecord.timestamp = new Date();
-    newRecord.token0Amount = '';
-    newRecord.token1Amount = '';
-    newRecord.exchange0 = '';
-    newRecord.exchange1 = '';
-    newRecord.volumeToken0 = '';
-    newRecord.volumeToken1 = '';
-    newRecord.volumeUSD = '';
+    newRecord.token0Amount = BigInt(0);
+    newRecord.token1Amount = BigInt(0);
+    newRecord.token0Price = BigInt(0);
+    newRecord.token1Price = BigInt(0);
+    newRecord.feeVolumeUSD = BigInt(0);
+    newRecord.feeToken0Amount = BigInt(0);
+    newRecord.feeToken1Amount = BigInt(0);
+    newRecord.dailyToken0TradeVolume = BigInt(0);
+    newRecord.dailyToken1TradeVolume = BigInt(0);
+    newRecord.dailyTradeVolumeUSD = BigInt(0);
+    newRecord.token0TradeVolume = BigInt(0);
+    newRecord.token1TradeVolume = BigInt(0);
+    newRecord.tradeVolumeUSD = BigInt(0);
+    newRecord.token0TVL = BigInt(0);
+    newRecord.token1TVL = BigInt(0);
+    newRecord.totalTVL = BigInt(0);
     newRecord.txCount = BigInt(0);
-    newRecord.tvlUSD = '';
-    newRecord.token0Open = '';
-    newRecord.token0High = '';
-    newRecord.token0Low = '';
-    newRecord.token0Close = '';
+    newRecord.token0Open = BigInt(0);
+    newRecord.token0Low = BigInt(0);
+    newRecord.token0Close = BigInt(0);
+    newRecord.token0High = BigInt(0);
+    newRecord.token1Open = BigInt(0);
+    newRecord.token1Low = BigInt(0);
+    newRecord.token1Close = BigInt(0);
+    newRecord.token1High = BigInt(0);
+
   } else {
     return record;
   }
@@ -99,33 +126,13 @@ export const getDailyPool = async (id: string) => {
 export const getDex = async (id: string) => {
   const record = await Dex.get(id);
 
-  if(!record) {
+  if (!record) {
     const newRecord = new Dex(id);
     newRecord.poolCount = 0;
-    newRecord.totalTVLUSD = '';
-    newRecord.totalVolumeUSD = '';
-  } else {
-    return record;
-  }
-}
-
-export const getDexHistory = async (id: string) => {
-  const record = await DexHistory.get(id);
-
-  if(!record) {
-    const newRecord = new DexHistory(id);
-    newRecord.accountId = '';
-    newRecord.type = '';
-    newRecord.subType = '';
-    newRecord.data = [];
-    newRecord.poolId = '';
-    newRecord.token0Id = '';
-    newRecord.token1Id = '';
-    newRecord.token0Amount = '';
-    newRecord.token1Amount = '';
-    newRecord.volumeUSD = '';
-    newRecord.extrinsicId = '';
-    newRecord.timestamp = new Date();
+    newRecord.tradeVolumeUSD = BigInt(0)
+    newRecord.totalTVL = BigInt(0)
+    newRecord.hourlyDexId = [];
+    newRecord.dailyDexId = [];
   } else {
     return record;
   }
@@ -134,10 +141,13 @@ export const getDexHistory = async (id: string) => {
 export const getExtrinsic = async (id: string) => {
   const record = await Extrinsic.get(id);
 
-  if(!record) {
+  if (!record) {
     const newRecord = new Extrinsic(id);
     newRecord.hash = '';
     newRecord.blockId = '';
+    newRecord.addressId = '';
+    newRecord.method = '';
+    newRecord.section = '';
   } else {
     return record;
   }
@@ -146,40 +156,52 @@ export const getExtrinsic = async (id: string) => {
 export const getHourDex = async (id: string) => {
   const record = await HourDex.get(id);
 
-  if(!record) {
+  if (!record) {
     const newRecord = new HourDex(id);
     newRecord.poolCount = 0;
     newRecord.timestamp = new Date();
-    newRecord.dailyVolumeUSD = '';
-    newRecord.totalVolumeUSD = '';
-    newRecord.totalTVLUSD = '';
+    newRecord.hourlyTradeVolumeUSD = BigInt(0)
+    newRecord.tradeVolumeUSD = BigInt(0)
+    newRecord.totalTVL = BigInt(0)
   } else {
     return record;
   }
 }
 
-export const getHourPool = async (id: string) => {
-  const record = await HourPool.get(id);
+export const getHourlyPool = async (id: string) => {
+  const record = await HourlyPool.get(id);
 
-  if(!record) {
-    const newRecord = new HourPool(id);
+  if (!record) {
+    const newRecord = new HourlyPool(id);
     newRecord.poolId = '';
     newRecord.token0Id = '';
     newRecord.token1Id = '';
     newRecord.timestamp = new Date();
-    newRecord.token0Amount = '';
-    newRecord.token1Amount = '';
-    newRecord.exchange0 = '';
-    newRecord.exchange1 = '';
-    newRecord.volumeToken0 = '';
-    newRecord.volumeToken1 = '';
-    newRecord.volumeUSD = '';
+    newRecord.token0Amount = BigInt(0);
+    newRecord.token1Amount = BigInt(0);
+    newRecord.token0Price = BigInt(0);
+    newRecord.token1Price = BigInt(0);
+    newRecord.feeVolumeUSD = BigInt(0);
+    newRecord.feeToken0Amount = BigInt(0);
+    newRecord.feeToken1Amount = BigInt(0);
+    newRecord.hourlyToken0TradeVolume = BigInt(0);
+    newRecord.hourlyToken1TradeVolume = BigInt(0);
+    newRecord.hourlyTradeVolumeUSD = BigInt(0);
+    newRecord.token0TradeVolume = BigInt(0);
+    newRecord.token1TradeVolume = BigInt(0);
+    newRecord.tradeVolumeUSD = BigInt(0);
+    newRecord.token0TVL = BigInt(0);
+    newRecord.token1TVL = BigInt(0);
+    newRecord.totalTVL = BigInt(0);
     newRecord.txCount = BigInt(0);
-    newRecord.tvlUSD = '';
-    newRecord.token0Open = '';
-    newRecord.token0High = '';
-    newRecord.token0Low = '';
-    newRecord.token0Close = '';
+    newRecord.token0Open = BigInt(0);
+    newRecord.token0High = BigInt(0);
+    newRecord.token0Low = BigInt(0);
+    newRecord.token0Close = BigInt(0);
+    newRecord.token1Open = BigInt(0);
+    newRecord.token1High = BigInt(0);
+    newRecord.token1Low = BigInt(0);
+    newRecord.token1Close = BigInt(0);
   } else {
     return record;
   }
@@ -188,22 +210,24 @@ export const getHourPool = async (id: string) => {
 export const getPool = async (id: string) => {
   const record = await Pool.get(id);
 
-  if(!record) {
+  if (!record) {
     const newRecord = new Pool(id);
     newRecord.token0Id = '';
     newRecord.token1Id = '';
-    newRecord.token0Amount = '';
-    newRecord.token1Amount = '';
-    newRecord.exchange0 = '';
-    newRecord.exchange1 = '';
-    newRecord.fee = '';
-    newRecord.token0Volume = '';
-    newRecord.token1Volume = '';
-    newRecord.volumeUSD = '';
+    newRecord.token0Amount = BigInt(0);
+    newRecord.token1Amount = BigInt(0);
+    newRecord.token0Price = BigInt(0);
+    newRecord.token1Price = BigInt(0);
+    newRecord.feeVolume = BigInt(0);
+    newRecord.feeToken0Amount = BigInt(0);
+    newRecord.feeToken1Amount = BigInt(0);
+    newRecord.token0TradeVolume = BigInt(0);
+    newRecord.token1TradeVolume = BigInt(0);
+    newRecord.tradeVolumeUSD = BigInt(0);
+    newRecord.token0TVL = BigInt(0);
+    newRecord.token1TVL = BigInt(0);
+    newRecord.totalTVL = BigInt(0);
     newRecord.txCount = BigInt(0);
-    newRecord.tvlUSD = '';
-    newRecord.token1TVL = '';
-    newRecord.token0TVL = '';
   } else {
     return record;
   }
@@ -212,17 +236,17 @@ export const getPool = async (id: string) => {
 export const getProvisionPool = async (id: string) => {
   const record = await ProvisionPool.get(id);
 
-  if(!record) {
+  if (!record) {
     const newRecord = new ProvisionPool(id);
-    newRecord.poolTokenId = '';
+    newRecord.poolId = '';
     newRecord.token0Id = '';
     newRecord.token1Id = '';
-    newRecord.token0Amount = '';
-    newRecord.token1Amount = '';
-    newRecord.initializeShare = '';
-    newRecord.startAtBlockNumber = BigInt(0);
+    newRecord.token0Amount = BigInt(0);
+    newRecord.token1Amount = BigInt(0);
+    newRecord.initializeShare = BigInt(0);
+    newRecord.startAt = new Date();
     newRecord.startAtBlockId = '';
-    newRecord.endAtBlockNumber = BigInt(0);
+    newRecord.endAt = new Date();
     newRecord.endAtBlockId = '';
     newRecord.txCount = BigInt(0);
   } else {
@@ -233,15 +257,208 @@ export const getProvisionPool = async (id: string) => {
 export const getUserProvision = async (id: string) => {
   const record = await UserProvision.get(id);
 
-  if(!record) {
+  if (!record) {
     const newRecord = new UserProvision(id);
     newRecord.ownerId = '';
     newRecord.poolId = '';
-    newRecord.token0Id = '';
-    newRecord.token1Id = '';
-    newRecord.token0Amount = '';
-    newRecord.token1Amount = '';
+    newRecord.token0Amount = BigInt(0);
+    newRecord.token1Amount = BigInt(0);
   } else {
     return record;
+  }
+}
+
+export const getPriceBundle = async (id: string) => {
+  const record = await PriceBundle.get(id);
+
+  if (!record) {
+    const newRecord = new PriceBundle(id);
+
+    newRecord.TokenId = '';
+    newRecord.blockId = '';
+    newRecord.price = BigInt(0);
+
+    return {
+      isExist: false,
+      record: newRecord
+    };
+  } else {
+    return {
+      isExist: true,
+      record: record
+    };
+  }
+}
+
+export const getAddLiquidity = async (id: string) => {
+  const record = await AddLiquidity.get(id);
+
+  if (!record) {
+    const newRecord = new AddLiquidity(id);
+
+    newRecord.addressId = '';
+    newRecord.poolId = '';
+    newRecord.token0Id = '';
+    newRecord.token1Id = '';
+    newRecord.token0Amount = BigInt(0);
+    newRecord.token1Amount = BigInt(0);
+    newRecord.price1 = BigInt(0);
+    newRecord.price0 = BigInt(0);
+    newRecord.blockId = '';
+    newRecord.extrinsicId = '';
+    newRecord.timestamp = new Date()
+
+    return newRecord
+  } else {
+    return record
+  }
+}
+
+export const getAddProvision = async (id: string) => {
+  const record = await AddProvision.get(id);
+
+  if (!record) {
+    const newRecord = new AddProvision(id);
+
+    newRecord.addressId = '';
+    newRecord.poolId = '';
+    newRecord.token0Id = '';
+    newRecord.token1Id = '';
+    newRecord.token0Amount = BigInt(0);
+    newRecord.token1Amount = BigInt(0);
+    newRecord.price1 = BigInt(0);
+    newRecord.price0 = BigInt(0);
+    newRecord.blockId = '';
+    newRecord.extrinsicId = '';
+    newRecord.timestamp = new Date()
+
+    return newRecord
+  } else {
+    return record
+  }
+}
+
+export const getListProvision = async (id: string) => {
+  const record = await ListProvision.get(id);
+
+  if (!record) {
+    const newRecord = new ListProvision(id);
+
+    newRecord.poolId = '';
+    newRecord.token0Id = '';
+    newRecord.token1Id = '';
+    newRecord.blockId = '';
+    newRecord.extrinsicId = '';
+    newRecord.timestamp = new Date()
+
+    return newRecord
+  } else {
+    return record
+  }
+}
+
+export const getProvisionPoolHourlyData = async (id: string) => {
+  const record = await ProvisionPoolHourlyData.get(id);
+
+  if (!record) {
+    const newRecord = new ProvisionPoolHourlyData(id);
+
+    newRecord.poolId = '';
+    newRecord.token0Amount = BigInt(0);
+    newRecord.token1Amount = BigInt(0);
+    newRecord.price0 = BigInt(0);
+    newRecord.price1 = BigInt(0);
+    newRecord.hourlyToken0InAmount = BigInt(0);
+    newRecord.hourlyToken1InAmount = BigInt(0);
+    newRecord.timestamp = new Date()
+
+    return newRecord
+  } else {
+    return record
+  }
+}
+
+export const getProvisionToEnabled = async (id: string) => {
+  const record = await ProvisionToEnabled.get(id);
+
+  if (!record) {
+    const newRecord = new ProvisionToEnabled(id);
+
+    newRecord.addressId = '';
+    newRecord.poolId = '';
+    newRecord.token0Amount = BigInt(0);
+    newRecord.token1Amount = BigInt(0);
+    newRecord.token0Id = '';
+    newRecord.token1Id = '';
+    newRecord.totalShareAmount = BigInt(0);
+    newRecord.blockId = '';
+    newRecord.extrinsicId = '';
+    newRecord.timestamp = new Date()
+
+    return newRecord
+  } else {
+    return record
+  }
+}
+
+export const getRemoveLiquidity = async (id: string) => {
+  const record = await RemoveLiquidity.get(id);
+
+  if (!record) {
+    const newRecord = new RemoveLiquidity(id);
+
+    newRecord.addressId = '';
+    newRecord.poolId = '';
+    newRecord.token0Amount = BigInt(0);
+    newRecord.token1Amount = BigInt(0);
+    newRecord.token0Id = '';
+    newRecord.token1Id = '';
+    newRecord.price0 = BigInt(0);
+    newRecord.price1 = BigInt(0);
+    newRecord.shareAmount = BigInt(0);
+    newRecord.blockId = '';
+    newRecord.extrinsicId = '';
+    newRecord.timestamp = new Date()
+
+    return newRecord
+  } else {
+    return record
+  }
+}
+
+export const getSwap = async (id: string) => {
+  const record = await Swap.get(id);
+
+  if (!record) {
+    const newRecord = new Swap(id);
+
+    newRecord.addressId = '';
+    newRecord.poolId = '';
+    newRecord.token0Id = '';
+    newRecord.token1Id = '';
+
+    return newRecord
+  } else {
+    return record
+  }
+}
+
+export const getTokenDailyData = async (id: string) => {
+  const record = await TokenDailyData.get(id);
+
+  if (!record) {
+    const newRecord = new TokenDailyData(id);
+
+    newRecord.tokenId = '';
+    newRecord.amount = BigInt(0);
+    newRecord.tvl = BigInt(0);
+    newRecord.dailyTradeVolume = BigInt(0);
+    newRecord.dailyTradeVolumeUSD = BigInt(0);
+    newRecord.dailyTxCount = BigInt(0);
+    newRecord.timestamp = new Date();
+
+    return newRecord
+  } else {
+    return record
   }
 }

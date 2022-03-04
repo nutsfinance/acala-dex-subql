@@ -20,27 +20,31 @@ export class Pool implements Entity {
 
     public token1Id?: string;
 
-    public token0Amount?: string;
+    public token0Amount?: bigint;
 
-    public token1Amount?: string;
+    public token1Amount?: bigint;
 
-    public exchange0?: string;
+    public token0Price?: bigint;
 
-    public exchange1?: string;
+    public token1Price?: bigint;
 
-    public fee?: string;
+    public feeVolume?: bigint;
 
-    public token0Volume?: string;
+    public feeToken0Amount?: bigint;
 
-    public token1Volume?: string;
+    public feeToken1Amount?: bigint;
 
-    public volumeUSD?: string;
+    public token0TradeVolume?: bigint;
 
-    public token0TVL?: string;
+    public token1TradeVolume?: bigint;
 
-    public token1TVL?: string;
+    public tradeVolumeUSD?: bigint;
 
-    public tvlUSD?: string;
+    public token0TVL?: bigint;
+
+    public token1TVL?: bigint;
+
+    public totalTVL?: bigint;
 
     public txCount?: bigint;
 

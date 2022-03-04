@@ -18,37 +18,61 @@ export class DailyPool implements Entity {
 
     public poolId?: string;
 
-    public token0Id: string;
-
-    public token1Id: string;
-
     public timestamp?: Date;
 
-    public token0Amount?: string;
+    public token0Id?: string;
 
-    public token1Amount?: string;
+    public token1Id?: string;
 
-    public exchange0?: string;
+    public token0Amount?: bigint;
 
-    public exchange1?: string;
+    public token1Amount?: bigint;
 
-    public volumeToken0?: string;
+    public token0Price?: bigint;
 
-    public volumeToken1?: string;
+    public token1Price?: bigint;
 
-    public volumeUSD?: string;
+    public feeVolumeUSD?: bigint;
+
+    public feeToken0Amount?: bigint;
+
+    public feeToken1Amount?: bigint;
+
+    public dailyToken0TradeVolume?: bigint;
+
+    public dailyToken1TradeVolume?: bigint;
+
+    public dailyTradeVolumeUSD?: bigint;
+
+    public token0TradeVolume?: bigint;
+
+    public token1TradeVolume?: bigint;
+
+    public tradeVolumeUSD?: bigint;
+
+    public token0TVL?: bigint;
+
+    public token1TVL?: bigint;
+
+    public totalTVL?: bigint;
 
     public txCount?: bigint;
 
-    public tvlUSD?: string;
+    public token0Open?: bigint;
 
-    public token0Open?: string;
+    public token0High?: bigint;
 
-    public token0High?: string;
+    public token0Low?: bigint;
 
-    public token0Low?: string;
+    public token0Close?: bigint;
 
-    public token0Close?: string;
+    public token1Open?: bigint;
+
+    public token1High?: bigint;
+
+    public token1Low?: bigint;
+
+    public token1Close?: bigint;
 
 
     async save(): Promise<void>{

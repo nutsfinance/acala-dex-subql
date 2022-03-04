@@ -18,13 +18,13 @@ export class HourDex implements Entity {
 
     public poolCount?: number;
 
+    public hourlyTradeVolumeUSD?: bigint;
+
+    public tradeVolumeUSD?: bigint;
+
+    public totalTVL?: bigint;
+
     public timestamp?: Date;
-
-    public dailyVolumeUSD?: string;
-
-    public totalVolumeUSD?: string;
-
-    public totalTVLUSD?: string;
 
 
     async save(): Promise<void>{
