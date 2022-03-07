@@ -1,53 +1,89 @@
-import { FixedPointNumber as FN, forceToCurrencyName } from "@acala-network/sdk-core";
-import { Option } from "@polkadot/types";
-import { TimestampedValue } from '@open-web3/orml-types/interfaces';
-import { getPriceBundle } from "./record";
+import { FixedPointNumber as FN, forceToCurrencyName, MaybeCurrency, Token } from "@acala-network/sdk-core";
 import { SubstrateEvent } from "@subql/types";
+import { getPool, getPriceBundle, getToken } from ".";
 import { ensureBlock } from "../handlers";
-import { CurrencyId } from "@acala-network/types/interfaces";
-import { getTokenDecimals } from ".";
 
-const queryTotalStaking = async () => {
-  if (api.query.homa) {
-    const stakingLedgers = await api.query.homa.stakingLedgers.entries();
-    const totalInSubAccount = stakingLedgers.reduce((acc, cur) => {
-      const item = (cur[1].toJSON() as any).bonded.toString();
-      return acc.add(FN.fromInner(item, 12));
-    }, new FN(0, 12));
-    const bonds = await api.query.homa.toBondPool()
-    return totalInSubAccount.add(FN.fromInner(bonds.toString(), 12));
-  } else {
-    try {
-      const total = await api.query.homaLite?.totalStakingCurrency();
-      return FN.fromInner(total.toString(), 12);
-    } catch (error) {
-      const total = await api.query.homa?.totalStakingCurrency();
-      return FN.fromInner(total.toString(), 12);
-    }
-  }
+async function getPriceFromDexPool (tokenA: string, tokenB: string) {
+	const [_t0, _t1] = Token.sortTokenNames(tokenA, tokenB);
+	const token0 = await getToken(_t0)
+	const token1 = await getToken(_t1)
+	const pool = await getPool(tokenA, tokenB)
+
+	if (!pool) return FN.ZERO
+
+	const amount0 = FN.fromInner(pool.token0Amount.toString() || '0', token0.decimals)
+	const amount1 = FN.fromInner(pool.token1Amount.toString() || '0', token1.decimals)
+
+	if (amount0.isZero()) return FN.ZERO
+
+	return pool.token0Id === tokenA ? amount1.div(amount0) : amount0.div(amount1)
+}
+ // get KAR price from KSM-KAR pair
+export async function getKARPrice () {
+	// get KAR-KSM pool
+	const karKSMPrice = await getPriceFromDexPool('KAR', 'KSM')
+	const ksmPrice = await getKSMPrice()
+
+	return karKSMPrice.mul(ksmPrice)
 }
 
-export const circulatePrice = async (currency: string): Promise<FN> => {
-  const liquidCurrencyId = (api.consts.homa?.liquidCurrencyId || api.consts.homaLite?.liquidCurrencyId) as unknown as CurrencyId;
-  const stakingCurrencyId = (api.consts.homa?.stakingCurrencyId || api.consts.homaLite?.stakingCurrencyId) as unknown as CurrencyId;
+export async function getLKSMPrice () {
+	// get KSM-LKSM pool
+	const lksmKSMPrice = await getPriceFromDexPool('LKSM', 'KSM')
+	const ksmPrice = await getKSMPrice()
 
-  if (liquidCurrencyId && forceToCurrencyName(liquidCurrencyId) === forceToCurrencyName(currency)) {
-    const [_stakingTokenPrice, _liquidIssuance] = await Promise.all([
-      api.query.acalaOracle.values({ Token: forceToCurrencyName(stakingCurrencyId) }),
-      api.query.tokens.totalIssuance({ Token: currency })
-    ])
-    const stakingTokenPrice = (_stakingTokenPrice as unknown as Option<TimestampedValue>).unwrapOrDefault().value.toString();
-    const stakingBalance = await queryTotalStaking();
-    const decimals = await getTokenDecimals(api as any, currency);
-    const liquidIssuance = FN.fromInner(_liquidIssuance.toString(), decimals);
-    const ratio = liquidIssuance.isZero() ? FN.ZERO : stakingBalance.div(liquidIssuance);
-    return FN.fromInner(stakingTokenPrice, 18).times(ratio);
-  } else {
-    const oraclePrice = await api.query.acalaOracle.values({ Token: forceToCurrencyName(currency) });
-    const value = (oraclePrice as unknown as Option<TimestampedValue>).unwrapOrDefault().value.toString();
-    return FN.fromInner(value, 18);
-  };
+	return lksmKSMPrice.mul(ksmPrice)
 }
+
+export async function getKSMPrice () {
+	return getPriceFromDexPool('KSM', 'KUSD')
+}
+
+// get KUSD price as $1
+export function getKUSDPrice () {
+	return new FN(1, 12)
+}
+
+export async function getDOTPrice () {
+	// get ACA-LC://13 pool
+	const dotLCPrice = await getPriceFromDexPool('DOT', 'lc://13')
+	const lc13Price = await getLC13Price()
+
+	return dotLCPrice.mul(lc13Price)
+}
+
+export async function getACAPrice () {
+	// get ACA-LC://13 pool
+	const acaLCPrice = await getPriceFromDexPool('ACA', 'lc://13')
+	const lc13Price = await getLC13Price()
+
+	return acaLCPrice.mul(lc13Price)
+}
+
+export async function getLC13Price () {
+	return getPriceFromDexPool('lc://13', 'AUSD')
+}
+
+export async function circulatePrice (name: MaybeCurrency) {
+	const _name = forceToCurrencyName(name)
+
+	if (_name === 'KUSD' || _name === 'AUSD') return getKUSDPrice()
+
+	if(_name === 'KSM') return getKSMPrice()
+
+	if (_name === 'KAR') return getKARPrice()
+
+	if (_name === 'LKSM') return getLKSMPrice()
+
+	if(_name === 'DOT') return getDOTPrice()
+
+	if(_name === 'ACA') return getACAPrice()
+
+	if(_name === 'lc://13') return getLC13Price()
+
+	return getPriceFromDexPool(_name, 'KUSD')
+}
+
 
 export const queryPrice = async (event: SubstrateEvent, token: string) => {
   const {id: blockId, number} = await ensureBlock(event);
@@ -58,7 +94,7 @@ export const queryPrice = async (event: SubstrateEvent, token: string) => {
     const price = await circulatePrice(token);
     record.blockId = blockId;
     record.TokenId = token;
-    record.price = BigInt(price.toString())
+    record.price = BigInt(price.toChainData())
 
     await record.save();
     return price

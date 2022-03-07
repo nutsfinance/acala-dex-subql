@@ -1,3 +1,5 @@
+import { createDexShareName, CurrencyObject, getCurrencyObject } from "@acala-network/sdk-core";
+import { Position } from "@acala-network/types/interfaces";
 import { getTokenDecimals } from ".";
 import {
   Account, Block, Extrinsic,
@@ -123,7 +125,7 @@ export const getDailyPool = async (id: string) => {
   }
 }
 
-export const getDex = async (id: string) => {
+export const getDex = async (id: string = 'dex') => {
   const record = await Dex.get(id);
 
   if (!record) {
@@ -207,18 +209,29 @@ export const getHourlyPool = async (id: string) => {
   }
 }
 
-export const getPool = async (id: string) => {
+export const getPool = async (token0: string, token1: string, poolId?: string) => {
+  const id = poolId ?? createDexShareName(token0, token1);
   const record = await Pool.get(id);
 
   if (!record) {
     const newRecord = new Pool(id);
-    newRecord.token0Id = '';
-    newRecord.token1Id = '';
-    newRecord.token0Amount = BigInt(0);
-    newRecord.token1Amount = BigInt(0);
+    let position: Position
+
+    try {
+      position = await api.query.dex.liquidityPool([getCurrencyObject(token0), getCurrencyObject(token1)]) as unknown as Position;
+    } catch (error) {
+      const currencyObject0: CurrencyObject = token0 === 'lc://13' ? { LiquidCroadloan: 13 } : getCurrencyObject(token0)
+      const currencyObject1: CurrencyObject = token1 === 'lc://13' ? { LiquidCroadloan: 13 } : getCurrencyObject(token1)
+      position = await api.query.dex.liquidityPool([currencyObject0, currencyObject1]) as unknown as Position;
+    }
+
+    newRecord.token0Id = token0;
+    newRecord.token1Id = token1;
+    newRecord.token0Amount = BigInt(position[0]?.toString() || '0');
+    newRecord.token1Amount = BigInt(position[1]?.toString() || '0');
     newRecord.token0Price = BigInt(0);
     newRecord.token1Price = BigInt(0);
-    newRecord.feeVolume = BigInt(0);
+    newRecord.feeVolume = BigInt('3000000000000000');
     newRecord.feeToken0Amount = BigInt(0);
     newRecord.feeToken1Amount = BigInt(0);
     newRecord.token0TradeVolume = BigInt(0);
