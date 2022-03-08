@@ -41,7 +41,7 @@ dataSources:
           kind: substrate/EventHandler
           filter:
             module: dex
-            method: ListProvision
+            method: ListProvisioning
         - handler: handleAddProvision
           kind: substrate/EventHandler
           filter:

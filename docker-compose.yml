@@ -25,8 +25,8 @@ services:
       - ./:/app
     command:
       - --subquery=/app
-      - --db-schema=acala-loan
-      - --schema=acala-loan
+      - --db-schema=acala-dex
+      - --schema=acala-dex
 
   graphql-engine:
     image: onfinality/subql-query:latest
@@ -43,6 +43,6 @@ services:
       DB_HOST: postgres
       DB_PORT: 5432
     command:
-      - --name=acala-loans
+      - --name=acala-dex
       - --playground
       - --indexer=http://subquery-node:3000

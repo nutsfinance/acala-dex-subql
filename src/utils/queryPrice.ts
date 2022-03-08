@@ -9,7 +9,7 @@ async function getPriceFromDexPool (tokenA: string, tokenB: string) {
 	const token1 = await getToken(_t1)
 	const pool = await getPool(tokenA, tokenB)
 
-	if (!pool) return FN.ZERO
+	if (pool.txCount == BigInt(0)) return FN.ZERO;
 
 	const amount0 = FN.fromInner(pool.token0Amount.toString() || '0', token0.decimals)
 	const amount1 = FN.fromInner(pool.token1Amount.toString() || '0', token1.decimals)
@@ -92,6 +92,7 @@ export const queryPrice = async (event: SubstrateEvent, token: string) => {
   if(isExist) return new FN(record.price.toString());
   else {
     const price = await circulatePrice(token);
+		price.setPrecision(18);
     record.blockId = blockId;
     record.TokenId = token;
     record.price = BigInt(price.toChainData())

@@ -47,7 +47,6 @@ type Token @entity {
   txCount: BigInt
   # modify [listprovison]
   poolCount: Int # pool count relate to the token
-
   dailyData: [TokenDailyData] @derivedFrom(field: "token")
   provisionPoolBase: [ProvisionPool] @derivedFrom(field: "token0")
   provisionPoolQuote: [ProvisionPool] @derivedFrom(field: "token1")
@@ -57,7 +56,6 @@ type Token @entity {
 
 type TokenDailyData @entity {
   id: ID! # token-timestamp
-
   token: Token!
 
   amount: BigInt! # total amount in every pool
@@ -70,8 +68,7 @@ type TokenDailyData @entity {
 }
 
 type ProvisionPool @entity {
-  id: ID! #token0-token1
-
+  id: ID! #poolid
   pool: Token
   token0: Token
   token1: Token
@@ -98,7 +95,7 @@ type ProvisionPool @entity {
 }
 
 type ProvisionPoolHourlyData @entity {
-  id: ID! # token0-token1-time
+  id: ID! # poolid-time
   pool: Token
 
   token0Amount: BigInt
@@ -253,9 +250,6 @@ type Dex @entity {
 
   tradeVolumeUSD: BigInt # total trade volume
   totalTVL: BigInt
-
-  hourlyDex: [HourDex]
-  dailyDex: [DailyDex]
 }
 
 type HourDex @entity {

@@ -1,6 +1,6 @@
 import { createDexShareName, CurrencyObject, getCurrencyObject } from "@acala-network/sdk-core";
+import { getTokenDecimals } from "@acala-network/subql-utils";
 import { Position } from "@acala-network/types/interfaces";
-import { getTokenDecimals } from ".";
 import {
   Account, Block, Extrinsic,
   AddLiquidity,
@@ -52,9 +52,10 @@ export const getBlock = async (id: string) => {
 
 export const getToken = async (token: string) => {
   const _collateral = await Token.get(token);
-  const decimals = await getTokenDecimals(api as any, token);
+  let decimals = await getTokenDecimals(api as any, token);
   if (!_collateral) {
     const newCollateral = new Token(token);
+    newCollateral.decimals = Number(decimals.toString());
     newCollateral.name = token;
     newCollateral.amount = BigInt(0);
     newCollateral.tvl = BigInt(0);
@@ -79,6 +80,7 @@ export const getDailyDex = async (id: string) => {
     newRecord.dailyTradeVolumeUSD = BigInt(0);
     newRecord.tradeVolumeUSD = BigInt(0);
     newRecord.totalTVL = BigInt(0);
+    return newRecord;
   } else {
     return record;
   }
@@ -119,6 +121,7 @@ export const getDailyPool = async (id: string) => {
     newRecord.token1Low = BigInt(0);
     newRecord.token1Close = BigInt(0);
     newRecord.token1High = BigInt(0);
+    return newRecord;
 
   } else {
     return record;
@@ -133,8 +136,7 @@ export const getDex = async (id: string = 'dex') => {
     newRecord.poolCount = 0;
     newRecord.tradeVolumeUSD = BigInt(0)
     newRecord.totalTVL = BigInt(0)
-    newRecord.hourlyDexId = [];
-    newRecord.dailyDexId = [];
+    return newRecord;
   } else {
     return record;
   }
@@ -150,6 +152,7 @@ export const getExtrinsic = async (id: string) => {
     newRecord.addressId = '';
     newRecord.method = '';
     newRecord.section = '';
+    return newRecord;
   } else {
     return record;
   }
@@ -165,6 +168,7 @@ export const getHourDex = async (id: string) => {
     newRecord.hourlyTradeVolumeUSD = BigInt(0)
     newRecord.tradeVolumeUSD = BigInt(0)
     newRecord.totalTVL = BigInt(0)
+    return newRecord;
   } else {
     return record;
   }
@@ -204,6 +208,7 @@ export const getHourlyPool = async (id: string) => {
     newRecord.token1High = BigInt(0);
     newRecord.token1Low = BigInt(0);
     newRecord.token1Close = BigInt(0);
+    return newRecord;
   } else {
     return record;
   }
@@ -241,6 +246,7 @@ export const getPool = async (token0: string, token1: string, poolId?: string) =
     newRecord.token1TVL = BigInt(0);
     newRecord.totalTVL = BigInt(0);
     newRecord.txCount = BigInt(0);
+    return newRecord;
   } else {
     return record;
   }
@@ -259,9 +265,8 @@ export const getProvisionPool = async (id: string) => {
     newRecord.initializeShare = BigInt(0);
     newRecord.startAt = new Date();
     newRecord.startAtBlockId = '';
-    newRecord.endAt = new Date();
-    newRecord.endAtBlockId = '';
     newRecord.txCount = BigInt(0);
+    return newRecord;
   } else {
     return record;
   }
@@ -276,6 +281,7 @@ export const getUserProvision = async (id: string) => {
     newRecord.poolId = '';
     newRecord.token0Amount = BigInt(0);
     newRecord.token1Amount = BigInt(0);
+    return newRecord;
   } else {
     return record;
   }
@@ -320,7 +326,6 @@ export const getAddLiquidity = async (id: string) => {
     newRecord.blockId = '';
     newRecord.extrinsicId = '';
     newRecord.timestamp = new Date()
-
     return newRecord
   } else {
     return record
@@ -344,7 +349,6 @@ export const getAddProvision = async (id: string) => {
     newRecord.blockId = '';
     newRecord.extrinsicId = '';
     newRecord.timestamp = new Date()
-
     return newRecord
   } else {
     return record
@@ -363,7 +367,6 @@ export const getListProvision = async (id: string) => {
     newRecord.blockId = '';
     newRecord.extrinsicId = '';
     newRecord.timestamp = new Date()
-
     return newRecord
   } else {
     return record
@@ -384,7 +387,6 @@ export const getProvisionPoolHourlyData = async (id: string) => {
     newRecord.hourlyToken0InAmount = BigInt(0);
     newRecord.hourlyToken1InAmount = BigInt(0);
     newRecord.timestamp = new Date()
-
     return newRecord
   } else {
     return record
@@ -407,7 +409,6 @@ export const getProvisionToEnabled = async (id: string) => {
     newRecord.blockId = '';
     newRecord.extrinsicId = '';
     newRecord.timestamp = new Date()
-
     return newRecord
   } else {
     return record
@@ -432,7 +433,6 @@ export const getRemoveLiquidity = async (id: string) => {
     newRecord.blockId = '';
     newRecord.extrinsicId = '';
     newRecord.timestamp = new Date()
-
     return newRecord
   } else {
     return record
@@ -449,7 +449,6 @@ export const getSwap = async (id: string) => {
     newRecord.poolId = '';
     newRecord.token0Id = '';
     newRecord.token1Id = '';
-
     return newRecord
   } else {
     return record
@@ -469,7 +468,6 @@ export const getTokenDailyData = async (id: string) => {
     newRecord.dailyTradeVolumeUSD = BigInt(0);
     newRecord.dailyTxCount = BigInt(0);
     newRecord.timestamp = new Date();
-
     return newRecord
   } else {
     return record

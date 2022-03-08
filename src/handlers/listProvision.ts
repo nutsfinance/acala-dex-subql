@@ -1,3 +1,4 @@
+import { forceToCurrencyName } from "@acala-network/sdk-core";
 import { TradingPair } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
@@ -9,7 +10,7 @@ export const listProvision = async (event: SubstrateEvent) => {
   const [tradingPair] = event.event.data as unknown as [TradingPair]
   const blockData = await ensureBlock(event);
 
-  const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1])
+  const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
 
   const poolToken = await getToken(poolId)
   const token0 = await getToken(token0Id)
@@ -20,8 +21,9 @@ export const listProvision = async (event: SubstrateEvent) => {
   token1.poolCount = token1.poolCount + 1;
 
   const provisionPool = await getProvisionPool(poolId)
-  provisionPool.token0Id = token0.name;
-  provisionPool.token1Id = token1.name;
+  provisionPool.poolId = poolId;
+  provisionPool.token0Id = token0Id;
+  provisionPool.token1Id = token1Id;
   provisionPool.startAtBlockId = blockData.hash
   provisionPool.startAt = blockData.timestamp;
 
@@ -44,5 +46,10 @@ export const createlistProvisionHistroy = async (event: SubstrateEvent) => {
   history.blockId = blockData.id;
   history.extrinsicId = extrinsicData.id;
 
+  extrinsicData.section = event.event.section;
+  extrinsicData.method = event.event.method;
+  extrinsicData.addressId = event.extrinsic.extrinsic.signer.toString();
+
+  await extrinsicData.save();
   await history.save();
 }
