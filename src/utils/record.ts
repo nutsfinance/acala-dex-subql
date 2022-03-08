@@ -149,7 +149,6 @@ export const getExtrinsic = async (id: string) => {
     const newRecord = new Extrinsic(id);
     newRecord.hash = '';
     newRecord.blockId = '';
-    newRecord.addressId = '';
     newRecord.method = '';
     newRecord.section = '';
     return newRecord;

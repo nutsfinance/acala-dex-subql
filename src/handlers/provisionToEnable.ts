@@ -3,7 +3,7 @@ import { getStartOfDay, getStartOfHour } from "@acala-network/subql-utils";
 import { Balance, TradingPair } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
-import { getDailyDex, getDex, getHourDex, getHourlyPool, getPool, getProvisionPool, getProvisionToEnabled, getToken, queryPrice } from "../utils";
+import { getAccount, getDailyDex, getDex, getHourDex, getHourlyPool, getPool, getProvisionPool, getProvisionToEnabled, getToken, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
 
 export const provisionToEnable = async (event: SubstrateEvent) => {
@@ -196,6 +196,8 @@ export const createProvisionToEnableHistory = async (event: SubstrateEvent) => {
   history.blockId = blockData.id;
   history.extrinsicId = extrinsicData.id;
   history.timestamp = blockData.timestamp;
+
+  await getAccount(event.extrinsic.extrinsic.signer.toString());
 
   extrinsicData.section = event.event.section;
   extrinsicData.method = event.event.method;

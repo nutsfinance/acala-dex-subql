@@ -135,6 +135,8 @@ export const createAddProvisionHistory = async (event: SubstrateEvent, addressId
   history.extrinsicId = extrinsicData.id;
   history.timestamp = blockData.timestamp;
 
+  await getAccount(event.extrinsic.extrinsic.signer.toString());
+
   extrinsicData.section = event.event.section;
   extrinsicData.method = event.event.method;
   extrinsicData.addressId = event.extrinsic.extrinsic.signer.toString();

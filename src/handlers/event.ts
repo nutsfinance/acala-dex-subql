@@ -18,7 +18,6 @@ export const ensureExtrinsic = async (event: SubstrateEvent) => {
   const extrinsicData = await getExtrinsic(extrinsicId);
   extrinsicData.blockId = blockData.id;
   extrinsicData.hash = extrinsicId;
-  extrinsicData.addressId = '';
   extrinsicData.method = '';
   extrinsicData.section = '';
   await extrinsicData.save();

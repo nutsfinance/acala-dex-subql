@@ -2,7 +2,7 @@ import { forceToCurrencyName } from "@acala-network/sdk-core";
 import { TradingPair } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
-import { getToken, getProvisionPool, getListProvision } from "../utils";
+import { getToken, getProvisionPool, getListProvision, getAccount } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
 
 export const listProvision = async (event: SubstrateEvent) => {
@@ -45,6 +45,8 @@ export const createlistProvisionHistroy = async (event: SubstrateEvent) => {
   history.token1Id = token1Id;
   history.blockId = blockData.id;
   history.extrinsicId = extrinsicData.id;
+
+  await getAccount(event.extrinsic.extrinsic.signer.toString());
 
   extrinsicData.section = event.event.section;
   extrinsicData.method = event.event.method;

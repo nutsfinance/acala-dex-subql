@@ -5,7 +5,7 @@ import { SubstrateEvent } from "@subql/types";
 import dayjs from "dayjs";
 import { ensureBlock, ensureExtrinsic } from ".";
 import { HourlyPool } from "../types";
-import { getAddLiquidity, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getToken, getTokenDailyData, queryPrice } from "../utils";
+import { getAccount, getAddLiquidity, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getToken, getTokenDailyData, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
 
 export const addLiquidity = async (event: SubstrateEvent) => {
@@ -208,6 +208,8 @@ export const createAddLiquidyHistory = async (event: SubstrateEvent, price0: FN,
   history.blockId = blockData.id;
   history.extrinsicId = extrinsicData.id;
   history.timestamp = blockData.timestamp;
+
+  await getAccount(event.extrinsic.extrinsic.signer.toString());
   
   extrinsicData.section = event.event.section;
   extrinsicData.method = event.event.method;

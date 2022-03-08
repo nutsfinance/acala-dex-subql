@@ -5,7 +5,7 @@ import { SubstrateEvent } from "@subql/types";
 import dayjs from "dayjs";
 import { ensureBlock, ensureExtrinsic } from ".";
 import { DailyPool, HourlyPool } from "../types";
-import { getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getSwap, getToken, getTokenDailyData, queryPrice } from "../utils";
+import { getAccount, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getSwap, getToken, getTokenDailyData, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
 
 export const swap = async (event: SubstrateEvent) => {
@@ -432,6 +432,8 @@ const createSwapHistory = async (event: SubstrateEvent) => {
   history.poolId = poolId;
   history.token0Id = token0Name;
   history.token1Id = token1Name;
+
+  await getAccount(event.extrinsic.extrinsic.signer.toString());
 
   extrinsicData.section = event.event.section;
   extrinsicData.method = event.event.method;
