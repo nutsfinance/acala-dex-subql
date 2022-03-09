@@ -15,11 +15,10 @@ export const swap = async (event: SubstrateEvent) => {
   } else {
     await swapByRuntimeLt1008(event)
   }
-  await createSwapHistory(event);
 }
 
 const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
-  const [, tradingPath, supplyAmount, targetAmount] = event.event.data as unknown as [AccountId, CurrencyId[], Balance, Balance];
+  const [owner, tradingPath, supplyAmount, targetAmount] = event.event.data as unknown as [AccountId, CurrencyId[], Balance, Balance];
   let nextSupplyAmount = FN.ZERO
   const blockData = await ensureBlock(event);
   const hourTime = getStartOfHour(blockData.timestamp);
@@ -59,8 +58,8 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
       // update next supply amount
       nextSupplyAmount = targetAmount
 
-      token0Amount = pool.token0Id === supplyTokenName ? _supplyAmount.toChainData() : '-' + targetAmount.toChainData()
-      token1Amount = pool.token1Id === supplyTokenName ? _supplyAmount.toChainData() : '-' + targetAmount.toChainData()
+      token0Amount = pool.token0Id === supplyTokenName ? _supplyAmount.toChainData() : (FN.ZERO.mul(targetAmount)).toChainData()
+      token1Amount = pool.token1Id === supplyTokenName ? _supplyAmount.toChainData() : (FN.ZERO.mul(targetAmount)).toChainData()
     }
 
     const token0AmountAbs = BigInt(token0Amount) > 0 ? BigInt(token0Amount) : -BigInt(token0Amount);
@@ -231,6 +230,7 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
     dailyDex.totalTVL = dex.totalTVL;
     dailyDex.timestamp = dailyTime;
     await dailyDex.save();
+    await createSwapHistory(event, owner.toString(), poolId, token0Name, token1Name);
   }
 }
 
@@ -430,45 +430,19 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
     dailyDex.totalTVL = dex.totalTVL;
     dailyDex.timestamp = dailyTime;
     await dailyDex.save();
+    await createSwapHistory(event, who.toString(), poolId, token0Name, token1Name);
   }
 }
 
-const createSwapHistory = async (event: SubstrateEvent) => {
-  const runtimeVersion = Number(event.block.specVersion.toString());
-  let supplyAmount: Balance
-  let targetAmount: Balance
-  let tradingPath: CurrencyId[]
-  let who: AccountId
-
-  if (runtimeVersion >= 1008) {
-    const [_who, _tradingPath, resultPath] = event.event
-      .data as unknown as [AccountId, CurrencyId[], Balance[]]
-
-    who = _who
-    supplyAmount = resultPath[0]
-    targetAmount = resultPath[resultPath.length - 1]
-    tradingPath = _tradingPath
-  } else {
-    const [_who, _tradingPath, _supplyAmount, _targetAmount] = event.event
-      .data as unknown as [AccountId, CurrencyId[], Balance, Balance]
-
-    who = _who
-    supplyAmount = _supplyAmount
-    targetAmount = _targetAmount
-    tradingPath = _tradingPath
-  }
-
+const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: string, token0Name: string, token1Name: string) => {
   const blockData = await ensureBlock(event);
   const extrinsicData = await ensureExtrinsic(event);
-
-  const currency0 = tradingPath[0]
-  const currency1 = tradingPath[tradingPath.length - 1]
-  const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1)
+  await getAccount(owner);
 
   const historyId = `${blockData.hash}-${event.event.index.toString()}`;
   const history = await getSwap(historyId);
 
-  history.addressId = who.toString();
+  history.addressId = owner;
   history.poolId = poolId;
   history.token0Id = token0Name;
   history.token1Id = token1Name;
