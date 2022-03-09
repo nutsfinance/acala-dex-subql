@@ -31,6 +31,7 @@ export const listProvision = async (event: SubstrateEvent) => {
   await token0.save();
   await token1.save();
   await provisionPool.save();
+  await createlistProvisionHistroy(event);
 }
 
 export const createlistProvisionHistroy = async (event: SubstrateEvent) => {
