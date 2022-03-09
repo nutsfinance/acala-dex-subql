@@ -4,7 +4,7 @@ import { AccountId, Balance, CurrencyId } from "@acala-network/types/interfaces"
 import { SubstrateEvent } from "@subql/types";
 import dayjs from "dayjs";
 import { ensureBlock, ensureExtrinsic } from ".";
-import { HourlyPool } from "../types";
+import { DailyPool, HourlyPool } from "../types";
 import { getAccount, getAddLiquidity, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getToken, getTokenDailyData, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
 
@@ -86,9 +86,9 @@ export const addLiquidity = async (event: SubstrateEvent) => {
   const dailyPool = await getDailyPool(dailyPoolId);
   //when create a new daily pool schema, need to update 'token*close' for the previous time period
   if (dailyPool.token0Id == '' && dailyPool.token1Id === '' && dailyPool.poolId === '') {
-    const preDailyTime = getStartOfHour(dayjs(blockData.timestamp).subtract(1, 'day').toDate());
+    const preDailyTime = getStartOfDay(dayjs(blockData.timestamp).subtract(1, 'day').toDate());
     const preDailyPoolId = `${poolId}-${preDailyTime.getTime()}`;
-    const preDailyPool = await HourlyPool.get(preDailyPoolId);
+    const preDailyPool = await DailyPool.get(preDailyPoolId);
     if (preDailyPool) {
       preDailyPool.token0Close = BigInt(price0.toChainData());
       preDailyPool.token1Close = BigInt(price1.toChainData());
