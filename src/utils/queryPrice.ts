@@ -89,7 +89,7 @@ export const queryPrice = async (event: SubstrateEvent, token: string) => {
   const {id: blockId, number} = await ensureBlock(event);
   const id = `${number}-${token}`;
   const {isExist, record} = await getPriceBundle(id);
-  if(isExist) return new FN(record.price.toString());
+  if(isExist) return FN.fromInner(record.price.toString(), 18)
   else {
     const price = await circulatePrice(token);
 		price.setPrecision(18);

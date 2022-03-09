@@ -70,7 +70,7 @@ export const addLiquidity = async (event: SubstrateEvent) => {
   hourPool.feeToken1Amount = hourPool.feeToken1Amount + token1fee;
   hourPool.hourlyToken0TradeVolume = hourPool.hourlyToken0TradeVolume + BigInt(token0Increment);
   hourPool.hourlyToken1TradeVolume = hourPool.hourlyToken1TradeVolume + BigInt(token1Increment);
-  hourPool.hourlyTradeVolumeUSD = hourPool.hourlyTradeVolumeUSD + BigInt(price0.times(FN.fromInner(hourPool.hourlyToken0TradeVolume.toString(), token0.decimals)).add(price1.times(FN.fromInner(hourPool.hourlyToken1TradeVolume.toString(), token1.decimals))).toChainData());
+  hourPool.hourlyTradeVolumeUSD = BigInt(price0.times(FN.fromInner(hourPool.hourlyToken0TradeVolume.toString(), token0.decimals)).add(price1.times(FN.fromInner(hourPool.hourlyToken1TradeVolume.toString(), token1.decimals))).toChainData());
   hourPool.token0TradeVolume = BigInt(token0Increment);
   hourPool.token1TradeVolume = BigInt(token1Increment);
   hourPool.token0TVL = pool.token0TVL;
@@ -109,7 +109,7 @@ export const addLiquidity = async (event: SubstrateEvent) => {
   dailyPool.feeToken1Amount = dailyPool.feeToken1Amount + token1fee;
   dailyPool.dailyToken0TradeVolume = dailyPool.dailyToken0TradeVolume + BigInt(token0Increment);
   dailyPool.dailyToken1TradeVolume = dailyPool.dailyToken1TradeVolume + BigInt(token1Increment);
-  dailyPool.dailyTradeVolumeUSD = dailyPool.dailyTradeVolumeUSD + BigInt(price0.times(FN.fromInner(dailyPool.dailyToken0TradeVolume.toString(), token0.decimals)).add(price1.times(FN.fromInner(dailyPool.dailyToken0TradeVolume.toString(), token1.decimals))).toChainData())
+  dailyPool.dailyTradeVolumeUSD = BigInt(price0.times(FN.fromInner(dailyPool.dailyToken0TradeVolume.toString(), token0.decimals)).add(price1.times(FN.fromInner(dailyPool.dailyToken0TradeVolume.toString(), token1.decimals))).toChainData())
   dailyPool.token0TradeVolume = BigInt(token0Increment);
   dailyPool.token1TradeVolume = BigInt(token1Increment);
   dailyPool.token0TVL = pool.token0TVL;
