@@ -87,7 +87,7 @@ export const createHourPool = async (event: SubstrateEvent, token0Amount: bigint
   const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
   const hourTime = getStartOfHour(event.block.timestamp).getTime();
 
-  const hourPoolId = `${token0Id}-${token1Id}-${hourTime}`
+  const hourPoolId = `${poolId}-${hourTime}`
   const hourPool = await getHourlyPool(hourPoolId);
   hourPool.poolId = poolId;
   hourPool.timestamp = event.block.timestamp;
@@ -118,7 +118,7 @@ export const createDailyPool = async (event: SubstrateEvent, token0Amount: bigin
   const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
   const hourTime = getStartOfHour(event.block.timestamp).getTime();
 
-  const dailyPoolId = `${token0Id}-${token1Id}-${hourTime}`
+  const dailyPoolId = `${poolId}-${hourTime}`
   const dailyPool = await getHourlyPool(dailyPoolId);
   dailyPool.poolId = poolId;
   dailyPool.timestamp = event.block.timestamp;
@@ -184,10 +184,12 @@ export const createProvisionToEnableHistory = async (event: SubstrateEvent) => {
   const [tradingPair, token0Amount, token1Amount] = event.event.data as unknown as [TradingPair, Balance, Balance, Balance]
   const blockData = await ensureBlock(event);
   const extrinsicData = await ensureExtrinsic(event);
+  const {address} =await getAccount(event.extrinsic.extrinsic.signer.toString());
 
   const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
   const historyId = `${blockData.hash}-${event.event.index.toString()}`;
   const history = await getProvisionToEnabled(historyId);
+  history.addressId = address;
   history.poolId = poolId;
   history.token0Id = token0Id;
   history.token1Id = token1Id;
@@ -197,11 +199,9 @@ export const createProvisionToEnableHistory = async (event: SubstrateEvent) => {
   history.extrinsicId = extrinsicData.id;
   history.timestamp = blockData.timestamp;
 
-  await getAccount(event.extrinsic.extrinsic.signer.toString());
-
   extrinsicData.section = event.event.section;
   extrinsicData.method = event.event.method;
-  extrinsicData.addressId = event.extrinsic.extrinsic.signer.toString();
+  extrinsicData.addressId = address;
 
   await extrinsicData.save();
   await history.save();

@@ -20,6 +20,5 @@ export const ensureExtrinsic = async (event: SubstrateEvent) => {
   extrinsicData.hash = extrinsicId;
   extrinsicData.method = '';
   extrinsicData.section = '';
-  await extrinsicData.save();
   return extrinsicData;
 }

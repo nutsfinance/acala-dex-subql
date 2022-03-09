@@ -92,7 +92,7 @@ export const updateDailyToken = async (dailyTime: Date, poolId: string, token0: 
 }
 
 export const addHourProvisionPool = async (hourTime: Date, poolId: string, token0: string, token1: string, token0Amount: bigint, token1Amount: bigint, price0: bigint, price1: bigint) => {
-  const hourPoolId = `${token0}-${token1}-${hourTime.getTime()}`
+  const hourPoolId = `${poolId}-${hourTime.getTime()}`
   const hourProvisionPool = await getProvisionPoolHourlyData(hourPoolId);
   hourProvisionPool.poolId = poolId;
   hourProvisionPool.token0Amount = token0Amount;
