@@ -3,27 +3,27 @@ import { addLiquidity, addProvision, listProvision, removeLiquidity, swap } from
 import { createPool, createProvisionToEnableHistory, provisionToEnable } from "../handlers";
 
 export const handleProvisioningToEnabled = async (event: SubstrateEvent) => {
-  await provisionToEnable(event);
-  await createPool(event);
-  await createProvisionToEnableHistory(event);
+	await provisionToEnable(event);
+	await createPool(event);
+	await createProvisionToEnableHistory(event);
 };
 
 export const handleAddLiquidity = async (event: SubstrateEvent) => {
-  await addLiquidity(event);
+	await addLiquidity(event);
 };
 
 export const handleRemoveLiquidity = async (event: SubstrateEvent) => {
- await removeLiquidity(event);
+	await removeLiquidity(event);
 };
 
 export const handleSwap = async (event: SubstrateEvent) => {
- await swap(event);
+	await swap(event);
 };
 
 export const handleListProvision = async (event: SubstrateEvent) => {
-  await listProvision(event);
+	await listProvision(event);
 };
 
 export const handleAddProvision = async (event: SubstrateEvent) => {
-  await addProvision(event);
+	await addProvision(event);
 };
