@@ -24,13 +24,16 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	const pool = await getPool(token0Name, token1Name, poolId);
 	const oldTotalTVL = pool.totalTVL;
 
+	const token0ChangedUSD = price0.times(FN.fromInner(token0Increment, token0.decimals));
+	const token1ChangedUSD = price1.times(FN.fromInner(token1Increment, token1.decimals));
+
 	pool.token0Amount = pool.token0Amount + BigInt(token0Increment);
 	pool.token1Amount = pool.token1Amount + BigInt(token1Increment);
 	pool.token0Price = BigInt(price0.toChainData());
 	pool.token1Price = BigInt(price1.toChainData());
 	pool.token0TradeVolume = pool.token0TradeVolume + BigInt(token0Increment);
 	pool.token1TradeVolume = pool.token1TradeVolume + BigInt(token1Increment);
-	pool.tradeVolumeUSD = BigInt(price0.times(FN.fromInner(pool.token0TradeVolume.toString(), token0.decimals)).add(price1.times(FN.fromInner(pool.token1TradeVolume.toString(), token1.decimals))).toChainData());
+	pool.tradeVolumeUSD = pool.tradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
 	pool.token0TVL = BigInt(price0.times(FN.fromInner(pool.token0Amount.toString())).toChainData());
 	pool.token1TVL = BigInt(price1.times(FN.fromInner(pool.token1Amount.toString())).toChainData());
 	pool.totalTVL = pool.token0TVL + pool.token1TVL;
@@ -49,7 +52,7 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	hourPool.token1Price = BigInt(price1.toChainData());
 	hourPool.hourlyToken0TradeVolume = hourPool.hourlyToken0TradeVolume + BigInt(token0Increment);
 	hourPool.hourlyToken1TradeVolume = hourPool.hourlyToken1TradeVolume + BigInt(token1Increment);
-	hourPool.hourlyTradeVolumeUSD = BigInt(price0.times(FN.fromInner(hourPool.hourlyToken0TradeVolume.toString(), token0.decimals)).add(price1.times(FN.fromInner(hourPool.hourlyToken1TradeVolume.toString(), token1.decimals))).toChainData());
+	hourPool.hourlyTradeVolumeUSD = hourPool.hourlyTradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
 	hourPool.token0TradeVolume = BigInt(token0Increment);
 	hourPool.token1TradeVolume = BigInt(token1Increment);
 	hourPool.token0TVL = pool.token0TVL;
@@ -76,7 +79,7 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	dailyPool.token1Price = BigInt(price1.toChainData());
 	dailyPool.dailyToken0TradeVolume = dailyPool.dailyToken0TradeVolume + BigInt(token0Increment);
 	dailyPool.dailyToken1TradeVolume = dailyPool.dailyToken1TradeVolume + BigInt(token1Increment);
-	dailyPool.dailyTradeVolumeUSD = BigInt(price0.times(FN.fromInner(dailyPool.dailyToken0TradeVolume.toString(), token0.decimals)).add(price1.times(FN.fromInner(dailyPool.dailyToken0TradeVolume.toString(), token1.decimals))).toChainData());
+	dailyPool.dailyTradeVolumeUSD = dailyPool.dailyTradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
 	dailyPool.token0TradeVolume = BigInt(token0Increment);
 	dailyPool.token1TradeVolume = BigInt(token1Increment);
 	dailyPool.token0TVL = pool.token0TVL;
@@ -91,15 +94,13 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	dailyPool.updateAtBlockId = blockData.hash;
 	await dailyPool.save();
 
-	const tradeVolumeUSD = BigInt(price0.times(FN.fromInner(token0Increment, token0.decimals)).add(price1.times(FN.fromInner(token1Increment, token1.decimals))).toChainData());
-
 	const dex = await getDex("dex");
-	dex.tradeVolumeUSD = dex.tradeVolumeUSD + tradeVolumeUSD;
+	dex.tradeVolumeUSD = dex.tradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
 	dex.totalTVL = dex.totalTVL + pool.totalTVL - oldTotalTVL;
 	await dex.save();
 
 	const hourDex = await getHourDex(hourTime.getTime().toString());
-	hourDex.hourlyTradeVolumeUSD = hourDex.hourlyTradeVolumeUSD + tradeVolumeUSD;
+	hourDex.hourlyTradeVolumeUSD = hourDex.hourlyTradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
 	hourDex.tradeVolumeUSD = dex.tradeVolumeUSD;
 	hourDex.totalTVL = dex.totalTVL;
 	hourDex.timestamp = hourTime;
@@ -107,7 +108,7 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	await hourDex.save();
 
 	const dailyDex = await getDailyDex(dailyTime.getTime().toString());
-	dailyDex.dailyTradeVolumeUSD = dailyDex.dailyTradeVolumeUSD + tradeVolumeUSD;
+	dailyDex.dailyTradeVolumeUSD = dailyDex.dailyTradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
 	dailyDex.tradeVolumeUSD = dex.tradeVolumeUSD;
 	dailyDex.totalTVL = dex.totalTVL;
 	dailyDex.timestamp = dailyTime;
@@ -122,20 +123,24 @@ const updateToken = async (event: SubstrateEvent, poolId: string, token0Name: st
 	const token1 = await getToken(token1Name);
 	const poolToken = await getToken(poolId);
 
-	token0.amount = token0.amount + BigInt(token0Increment);
-	token0.tvl = BigInt(price0.times(FN.fromInner(token0.amount.toString(), token0.decimals)).toChainData());
-	token0.tradeVolume = token0.tradeVolume + (BigInt(token0Increment) > 0 ? BigInt(token0Increment) : -BigInt(token0Increment));
-	token0.tradeVolumeUSD = BigInt(price0.times(FN.fromInner(token0.tradeVolume.toString(), token0.decimals)).toChainData());
-	token0.txCount = token0.txCount + BigInt(1);
-	token1.amount = token1.amount + BigInt(token1Increment);
-	token1.tvl = BigInt(price1.times(FN.fromInner(token1.amount.toString(), token1.decimals)).toChainData());
-	token1.tradeVolume = token1.tradeVolume + (BigInt(token1Increment) > 0 ? BigInt(token1Increment) : -BigInt(token1Increment));
-	token1.tradeVolumeUSD = BigInt(price1.times(FN.fromInner(token1.tradeVolume.toString(), token1.decimals)).toChainData());
-	token1.txCount = token1.txCount + BigInt(1);
+	const token0Changed = BigInt(token0Increment) > 0 ? BigInt(token0Increment) : -BigInt(token0Increment)
+	const token1Changed = BigInt(token1Increment) > 0 ? BigInt(token1Increment) : -BigInt(token1Increment)
+	const token0ChangedUSD = BigInt(price0.times(FN.fromInner(token0Changed.toString(), token0.decimals)).toChainData());
+	const token1ChangedUSD = BigInt(price1.times(FN.fromInner(token1Changed.toString(), token1.decimals)).toChainData());
 
-	poolToken.amount = poolToken.amount + BigInt(token0Increment) + BigInt(token1Increment);
+	token0.amount = token0.amount + BigInt(token0Changed);
+	token0.tvl = BigInt(price0.times(FN.fromInner(token0.amount.toString(), token0.decimals)).toChainData());
+	token0.tradeVolume = token0.tradeVolume + token0Changed;
+	token0.tradeVolumeUSD = token0.tradeVolumeUSD + token0ChangedUSD;
+	token0.txCount = token0.txCount + BigInt(1);
+	token1.amount = token1.amount + BigInt(token1Changed);
+	token1.tvl = BigInt(price1.times(FN.fromInner(token1.amount.toString(), token1.decimals)).toChainData());
+	token1.tradeVolume = token1.tradeVolume + token1Changed;
+	token1.tradeVolumeUSD = token1.tradeVolumeUSD + token1ChangedUSD;
+	token1.txCount = token1.txCount + BigInt(1);
+	poolToken.amount = poolToken.amount + BigInt(token0Changed) + BigInt(token1Changed);
 	poolToken.tvl = token0.tvl + token1.tvl;
-	poolToken.tradeVolume = poolToken.tradeVolume + token0.tradeVolume + token1.tradeVolume;
+	poolToken.tradeVolume = token0.tradeVolume + token1.tradeVolume;
 	poolToken.tradeVolumeUSD = token0.tradeVolumeUSD + token1.tradeVolumeUSD;
 	poolToken.txCount = poolToken.txCount + BigInt(1);
 
@@ -147,24 +152,24 @@ const updateToken = async (event: SubstrateEvent, poolId: string, token0Name: st
 	Dailytoken0.tokenId = token0Name;
 	Dailytoken0.amount = token0.amount;
 	Dailytoken0.tvl = token0.tvl;
-	Dailytoken0.dailyTradeVolume = Dailytoken0.dailyTradeVolume + (BigInt(token0Increment) > 0 ? BigInt(token0Increment) : -BigInt(token0Increment));
-	Dailytoken0.dailyTradeVolumeUSD = BigInt(price0.times(FN.fromInner(Dailytoken0.dailyTradeVolume.toString(), token0.decimals)).toChainData());
+	Dailytoken0.dailyTradeVolume = Dailytoken0.dailyTradeVolume + token0Changed;
+	Dailytoken0.dailyTradeVolumeUSD = Dailytoken0.dailyTradeVolumeUSD + token0ChangedUSD;
 	Dailytoken0.dailyTxCount = Dailytoken0.dailyTxCount + BigInt(1);
 	Dailytoken0.timestamp = getStartOfDay(event.block.timestamp);
 	Dailytoken0.updateAtBlockId = event.block.block.hash.toString();
 	Dailytoken1.tokenId = token1Name;
 	Dailytoken1.amount = token1.amount;
 	Dailytoken1.tvl = token1.tvl;
-	Dailytoken1.dailyTradeVolume = Dailytoken1.dailyTradeVolume + (BigInt(token1Increment) > 0 ? BigInt(token1Increment) : -BigInt(token1Increment));
-	Dailytoken1.dailyTradeVolumeUSD = BigInt(price1.times(FN.fromInner(Dailytoken1.dailyTradeVolume.toString(), token1.decimals)).toChainData());
+	Dailytoken1.dailyTradeVolume = Dailytoken1.dailyTradeVolume + token1Changed;
+	Dailytoken1.dailyTradeVolumeUSD = Dailytoken1.dailyTradeVolumeUSD + token1ChangedUSD;
 	Dailytoken1.dailyTxCount = Dailytoken1.dailyTxCount + BigInt(1);
 	Dailytoken1.timestamp = getStartOfDay(event.block.timestamp);
 	Dailytoken1.updateAtBlockId = event.block.block.hash.toString();
 	DailyPoolToken.tokenId = poolId;
 	DailyPoolToken.amount = token1.amount + token0.amount;
 	DailyPoolToken.tvl = token1.tvl + token0.tvl;
-	DailyPoolToken.dailyTradeVolume = DailyPoolToken.dailyTradeVolume + (BigInt(token1Increment) > 0 ? BigInt(token1Increment) : -BigInt(token1Increment)) + (BigInt(token0Increment) > 0 ? BigInt(token0Increment) : -BigInt(token0Increment));
-	DailyPoolToken.dailyTradeVolumeUSD = BigInt(price1.times(FN.fromInner(DailyPoolToken.dailyTradeVolume.toString(), poolToken.decimals)).toChainData());
+	DailyPoolToken.dailyTradeVolume = DailyPoolToken.dailyTradeVolume + token0Changed + token1Changed
+	DailyPoolToken.dailyTradeVolumeUSD = 	DailyPoolToken.dailyTradeVolumeUSD + token0ChangedUSD + token1ChangedUSD
 	DailyPoolToken.dailyTxCount = DailyPoolToken.dailyTxCount + BigInt(1);
 	DailyPoolToken.timestamp = getStartOfDay(event.block.timestamp);
 	DailyPoolToken.updateAtBlockId = event.block.block.hash.toString();

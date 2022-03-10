@@ -1,9 +1,10 @@
 import { FixedPointNumber as FN } from "@acala-network/sdk-core";
+import { getStartOfDay, getStartOfHour } from "@acala-network/subql-utils";
 import { AccountId, Balance, CurrencyId } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
 import { Token } from "../types";
-import { getAccount, getAddProvision, getDateStartOfDay, getDateStartOfHour, getProvisionPool, getProvisionPoolHourlyData, getToken, getTokenDailyData, getUserProvision, queryPrice } from "../utils";
+import { getAccount, getAddProvision, getProvisionPool, getProvisionPoolHourlyData, getToken, getTokenDailyData, getUserProvision, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
 
 export const addProvision = async (event: SubstrateEvent) => {
@@ -11,8 +12,9 @@ export const addProvision = async (event: SubstrateEvent) => {
 	const [account, _token0, _token0Amount, _token1, _token1Amount] = event.event.data as unknown as [AccountId, CurrencyId, Balance, CurrencyId, Balance];
 	const [poolId, token0Name, token1Name] = getPoolId(_token0, _token1);
 	const blockData = await ensureBlock(event);
-	const hourTime = getDateStartOfHour(blockData.timestamp).toDate();
-	const dailyTime = getDateStartOfDay(blockData.timestamp).toDate();
+	const {address} = await getAccount(account.toString());
+	const hourTime = getStartOfHour(blockData.timestamp);
+	const dailyTime = getStartOfDay(blockData.timestamp);
 
 	const price0 = await queryPrice(event, token0Name);
 	const price1 = await queryPrice(event, token1Name);
@@ -29,8 +31,8 @@ export const addProvision = async (event: SubstrateEvent) => {
 	await updateDailyToken(blockData.hash, dailyTime, poolId, token0, token1, token0Amount, token1Amount, price0, price1);
 	await provisionPool.save();
 	await addHourProvisionPool(blockData.hash, hourTime, poolId, token0Name, token1Name, token0Amount, token1Amount, BigInt(price0.toChainData()), BigInt(price1.toChainData()));
-	await addUserProvision(account.toString(), poolId, token0Amount, token1Amount);
-	await createAddProvisionHistory(event, account.toString(), poolId, token0Name, token1Name, token0Amount, token1Amount, BigInt(price0.toChainData()), BigInt(price1.toChainData()));
+	await addUserProvision(address, poolId, token0Amount, token1Amount);
+	await createAddProvisionHistory(event, address, poolId, token0Name, token1Name, token0Amount, token1Amount, BigInt(price0.toChainData()), BigInt(price1.toChainData()));
 };
 
 export const updateToken = async (poolId: string, token0Name: string, token1Name: string, token0Amount: bigint, token1Amount: bigint, price0: FN, price1: FN) => {
@@ -112,10 +114,9 @@ export const addHourProvisionPool = async (hash: string, hourTime: Date, poolId:
 };
 
 export const addUserProvision = async (account: string, poolId: string, token0Amount: bigint, token1Amount: bigint) => {
-	await getAccount(account.toString());
 	const userPoolId = `${poolId}-${account.toString()}`;
 	const userPool = await getUserProvision(userPoolId);
-	userPool.ownerId = account.toString();
+	userPool.ownerId = account
 	userPool.poolId = poolId;
 	userPool.token0Amount = userPool.token0Amount + token0Amount;
 	userPool.token1Amount = userPool.token1Amount + token1Amount;

@@ -85,12 +85,12 @@ export const createHourPool = async (event: SubstrateEvent, token0Amount: bigint
 	// [trading_pair, pool_0_amount, pool_1_amount, total_share_amount\]
 	const [tradingPair, _token0Amount, _token1Amount, _] = event.event.data as unknown as [TradingPair, Balance, Balance, Balance];
 	const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
-	const hourTime = getStartOfHour(event.block.timestamp).getTime();
+	const hourTime = getStartOfHour(event.block.timestamp);
 
-	const hourPoolId = `${poolId}-${hourTime}`;
+	const hourPoolId = `${poolId}-${hourTime.getTime()}`;
 	const hourPool = await getHourlyPool(hourPoolId);
 	hourPool.poolId = poolId;
-	hourPool.timestamp = event.block.timestamp;
+	hourPool.timestamp = hourTime;
 	hourPool.token0Id = token0Id;
 	hourPool.token1Id = token1Id;
 	hourPool.token0Amount = token0Amount;
@@ -117,12 +117,12 @@ export const createDailyPool = async (event: SubstrateEvent, token0Amount: bigin
 	// [trading_pair, pool_0_amount, pool_1_amount, total_share_amount\]
 	const [tradingPair, _token0Amount, _token1Amount, _] = event.event.data as unknown as [TradingPair, Balance, Balance, Balance];
 	const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
-	const hourTime = getStartOfHour(event.block.timestamp).getTime();
+	const dailyTime = getStartOfDay(event.block.timestamp);
 
-	const dailyPoolId = `${poolId}-${hourTime}`;
+	const dailyPoolId = `${poolId}-${dailyTime.getTime()}`;
 	const dailyPool = await getHourlyPool(dailyPoolId);
 	dailyPool.poolId = poolId;
-	dailyPool.timestamp = event.block.timestamp;
+	dailyPool.timestamp = dailyTime;
 	dailyPool.token0Id = token0Id;
 	dailyPool.token1Id = token1Id;
 	dailyPool.token0Amount = token0Amount;
