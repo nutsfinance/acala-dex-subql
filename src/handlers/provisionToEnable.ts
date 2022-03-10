@@ -172,8 +172,7 @@ export const createHourDex = async (count: number, totalTvl: bigint, timestamp: 
 
 export const createDailyDex = async (count: number, totalTvl: bigint, timestamp: Date, hash: string) => {
 	const dailyTime = getStartOfDay(timestamp);
-	const dailyDexId = `${dailyTime.getTime()}`;
-	const dex = await getDailyDex(dailyDexId);
+	const dex = await getDailyDex(dailyTime.getTime().toString());
 
 	dex.poolCount = count;
 	dex.totalTVL = totalTvl;

@@ -17,7 +17,7 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	const price0 = await queryPrice(event, token0Name);
 	const price1 = await queryPrice(event, token1Name);
 	const hourTime = getStartOfHour(blockData.timestamp);
-	const dailyTime = getStartOfHour(blockData.timestamp);
+	const dailyTime = getStartOfDay(blockData.timestamp);
 
 	const { token0, token1 } = await updateToken(event, poolId, token0Name, token1Name, token0Increment, token1Increment, price0, price1);
 
