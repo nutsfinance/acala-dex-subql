@@ -1,11 +1,8 @@
 import { forceToCurrencyName, FixedPointNumber as FN } from "@acala-network/sdk-core";
-import { getStartOfDay, getStartOfHour } from "@acala-network/subql-utils";
 import { AccountId, Balance, CurrencyId } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
-import dayjs from "dayjs";
 import { ensureBlock, ensureExtrinsic } from ".";
-import { DailyPool, HourlyPool } from "../types";
-import { getAccount, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getSwap, getToken, getTokenDailyData, queryPrice } from "../utils";
+import { getAccount, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getStartOfDay, getStartOfHour, getSwap, getToken, getTokenDailyData, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
 
 export const swap = async (event: SubstrateEvent) => {
@@ -34,10 +31,8 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
 		const token0 = await getToken(token0Name);
 		const token1 = await getToken(token1Name);
-		const poolToken = await getToken(poolId);
 		const dailyToken0 = await getTokenDailyData(`${token0Name}-${dailyTime.getTime()}`);
 		const dailyToken1 = await getTokenDailyData(`${token1Name}-${dailyTime.getTime()}`);
-		const DailyPoolToken = await getTokenDailyData(`${poolId}-${dailyTime.getTime()}`);
 		const pool = await getPool(token0Name, token1Name, poolId);
 
 		let token0Amount = "0";
@@ -81,11 +76,6 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		token1.tradeVolume = token1.tradeVolume + token1AmountAbs;
 		token1.tradeVolumeUSD = token1.tradeVolumeUSD + token1ChangedUSD;
 		token1.txCount = token1.txCount + BigInt(1);
-		poolToken.amount = poolToken.amount + BigInt(token0AmountAbs) + BigInt(token1AmountAbs);
-		poolToken.tvl = token0.tvl + token1.tvl;
-		poolToken.tradeVolume = token0.tradeVolume + token1.tradeVolume;
-		poolToken.tradeVolumeUSD = token0.tradeVolumeUSD + token1.tradeVolumeUSD;
-		poolToken.txCount = poolToken.txCount + BigInt(1);
 
 		dailyToken0.tokenId = token0Name;
 		dailyToken0.amount = token0.amount;
@@ -103,14 +93,6 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		dailyToken1.dailyTxCount = dailyToken1.dailyTxCount + BigInt(1);
 		dailyToken1.timestamp = dailyTime;
 		dailyToken1.updateAtBlockId = blockData.hash;
-		DailyPoolToken.tokenId = poolId;
-		DailyPoolToken.amount = token1.amount + token0.amount;
-		DailyPoolToken.tvl = token1.tvl + token0.tvl;
-		DailyPoolToken.dailyTradeVolume = DailyPoolToken.dailyTradeVolume + token0AmountAbs + token1AmountAbs;
-		DailyPoolToken.dailyTradeVolumeUSD = DailyPoolToken.dailyTradeVolumeUSD + token0ChangedUSD + token1ChangedUSD;
-		DailyPoolToken.dailyTxCount = DailyPoolToken.dailyTxCount + BigInt(1);
-		DailyPoolToken.timestamp = getStartOfDay(event.block.timestamp);
-		DailyPoolToken.updateAtBlockId = blockData.hash;
 
 		await token0.save();
 		await token1.save();
@@ -239,10 +221,8 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
 		const token0 = await getToken(token0Name);
 		const token1 = await getToken(token1Name);
-		const poolToken = await getToken(poolId);
 		const dailyToken0 = await getTokenDailyData(`${token0Name}-${dailyTime.getTime()}`);
 		const dailyToken1 = await getTokenDailyData(`${token1Name}-${dailyTime.getTime()}`);
-		const DailyPoolToken = await getTokenDailyData(`${poolId}-${dailyTime.getTime()}`);
 		const pool = await getPool(token0Name, token1Name, poolId);
 		const dex = await getDex();
 
@@ -268,11 +248,6 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		token1.tradeVolume = token1.tradeVolume + token1AmountAbs;
 		token1.tradeVolumeUSD = token1.tradeVolumeUSD + token1ChangedUSD;
 		token1.txCount = token1.txCount + BigInt(1);
-		poolToken.amount = poolToken.amount + BigInt(token0Amount) + BigInt(token1Amount);
-		poolToken.tvl = token0.tvl + token1.tvl;
-		poolToken.tradeVolume = token0.tradeVolume + token1.tradeVolume;
-		poolToken.tradeVolumeUSD = token0.tradeVolumeUSD + token1.tradeVolumeUSD;
-		poolToken.txCount = poolToken.txCount + BigInt(1);
 
 		dailyToken0.tokenId = token0Name;
 		dailyToken0.amount = token0.amount;
@@ -290,14 +265,6 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		dailyToken1.dailyTxCount = dailyToken1.dailyTxCount + BigInt(1);
 		dailyToken1.timestamp = dailyTime;
 		dailyToken1.updateAtBlockId = blockData.hash;
-		DailyPoolToken.tokenId = poolId;
-		DailyPoolToken.amount = token1.amount + token0.amount;
-		DailyPoolToken.tvl = token1.tvl + token0.tvl;
-		DailyPoolToken.dailyTradeVolume = DailyPoolToken.dailyTradeVolume + token0AmountAbs + token1AmountAbs;
-		DailyPoolToken.dailyTradeVolumeUSD = DailyPoolToken.dailyTradeVolumeUSD + token0ChangedUSD + token1ChangedUSD;
-		DailyPoolToken.dailyTxCount = DailyPoolToken.dailyTxCount + BigInt(1);
-		DailyPoolToken.timestamp = getStartOfDay(event.block.timestamp);
-		DailyPoolToken.updateAtBlockId = blockData.hash;
 
 		await token0.save();
 		await token1.save();

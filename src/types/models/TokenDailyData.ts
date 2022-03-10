@@ -28,6 +28,8 @@ export class TokenDailyData implements Entity {
 
     public dailyTxCount: bigint;
 
+    public price?: bigint;
+
     public timestamp?: Date;
 
     public updateAtBlockId?: string;

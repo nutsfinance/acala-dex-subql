@@ -19,7 +19,7 @@ async function getPriceFromDexPool (tokenA: string, tokenB: string) {
 	return pool.token0Id === tokenA ? amount1.div(amount0) : amount0.div(amount1);
 }
 // get KAR price from KSM-KAR pair
-export async function getKARPrice () {
+export async function getKARPrice() {
 	// get KAR-KSM pool
 	const karKSMPrice = await getPriceFromDexPool("KAR", "KSM");
 	const ksmPrice = await getKSMPrice();
@@ -27,7 +27,7 @@ export async function getKARPrice () {
 	return karKSMPrice.mul(ksmPrice);
 }
 
-export async function getLKSMPrice () {
+export async function getLKSMPrice() {
 	// get KSM-LKSM pool
 	const lksmKSMPrice = await getPriceFromDexPool("LKSM", "KSM");
 	const ksmPrice = await getKSMPrice();
@@ -35,16 +35,16 @@ export async function getLKSMPrice () {
 	return lksmKSMPrice.mul(ksmPrice);
 }
 
-export async function getKSMPrice () {
+export async function getKSMPrice() {
 	return getPriceFromDexPool("KSM", "KUSD");
 }
 
 // get KUSD price as $1
-export function getKUSDPrice () {
+export function getKUSDPrice() {
 	return new FN(1, 12);
 }
 
-export async function getDOTPrice () {
+export async function getDOTPrice() {
 	// get ACA-LC://13 pool
 	const dotLCPrice = await getPriceFromDexPool("DOT", "lc://13");
 	const lc13Price = await getLC13Price();
@@ -52,7 +52,7 @@ export async function getDOTPrice () {
 	return dotLCPrice.mul(lc13Price);
 }
 
-export async function getACAPrice () {
+export async function getACAPrice() {
 	// get ACA-LC://13 pool
 	const acaLCPrice = await getPriceFromDexPool("ACA", "lc://13");
 	const lc13Price = await getLC13Price();
@@ -60,36 +60,36 @@ export async function getACAPrice () {
 	return acaLCPrice.mul(lc13Price);
 }
 
-export async function getLC13Price () {
+export async function getLC13Price() {
 	return getPriceFromDexPool("lc://13", "AUSD");
 }
 
-export async function circulatePrice (name: MaybeCurrency) {
+export async function circulatePrice(name: MaybeCurrency) {
 	const _name = forceToCurrencyName(name);
 
 	if (_name === "KUSD" || _name === "AUSD") return getKUSDPrice();
 
-	if(_name === "KSM") return getKSMPrice();
+	if (_name === "KSM") return getKSMPrice();
 
 	if (_name === "KAR") return getKARPrice();
 
 	if (_name === "LKSM") return getLKSMPrice();
 
-	if(_name === "DOT") return getDOTPrice();
+	if (_name === "DOT") return getDOTPrice();
 
-	if(_name === "ACA") return getACAPrice();
+	if (_name === "ACA") return getACAPrice();
 
-	if(_name === "lc://13") return getLC13Price();
+	if (_name === "lc://13") return getLC13Price();
 
 	return getPriceFromDexPool(_name, "KUSD");
 }
 
 
 export const queryPrice = async (event: SubstrateEvent, token: string) => {
-	const {id: blockId, number} = await ensureBlock(event);
+	const { id: blockId, number } = await ensureBlock(event);
 	const id = `${number}-${token}`;
-	const {isExist, record} = await getPriceBundle(id);
-	if(isExist) return FN.fromInner(record.price.toString(), 18);
+	const { isExist, record } = await getPriceBundle(id);
+	if (isExist) return FN.fromInner(record.price.toString(), 18);
 	else {
 		const price = await circulatePrice(token);
 		price.setPrecision(18);

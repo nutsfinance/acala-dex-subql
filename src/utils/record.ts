@@ -63,6 +63,7 @@ export const getToken = async (token: string) => {
 		newCollateral.tradeVolumeUSD = BigInt(0);
 		newCollateral.txCount = BigInt(0);
 		newCollateral.poolCount = 0;
+		newCollateral.price = BigInt(0);
 		await newCollateral.save();
 		return newCollateral;
 	} else {
@@ -260,7 +261,6 @@ export const getProvisionPool = async (id: string) => {
 
 	if (!record) {
 		const newRecord = new ProvisionPool(id);
-		newRecord.poolId = "";
 		newRecord.token0Id = "";
 		newRecord.token1Id = "";
 		newRecord.token0Amount = BigInt(0);
@@ -473,6 +473,7 @@ export const getTokenDailyData = async (id: string) => {
 		newRecord.dailyTxCount = BigInt(0);
 		newRecord.timestamp = new Date();
 		newRecord.updateAtBlockId = "";
+		newRecord.price = BigInt(0);
 		return newRecord;
 	} else {
 		return record;

@@ -30,6 +30,8 @@ export class Token implements Entity {
 
     public txCount?: bigint;
 
+    public price?: bigint;
+
     public poolCount?: number;
 
 

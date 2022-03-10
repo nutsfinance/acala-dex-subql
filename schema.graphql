@@ -46,6 +46,7 @@ type Token @entity {
   # modify [addprovison, addLiquidity, removeLiquidity, swap]
   txCount: BigInt
   # modify [listprovison]
+  price: BigInt
   poolCount: Int # pool count relate to the token
   dailyData: [TokenDailyData] @derivedFrom(field: "token")
   provisionPoolBase: [ProvisionPool] @derivedFrom(field: "token0")
@@ -63,6 +64,7 @@ type TokenDailyData @entity {
   dailyTradeVolume: BigInt! # total trade volume
   dailyTradeVolumeUSD: BigInt! # total trade volume in USD
   dailyTxCount: BigInt!
+  price: BigInt
 
   timestamp: Date
   updateAtBlock: Block
@@ -70,7 +72,6 @@ type TokenDailyData @entity {
 
 type ProvisionPool @entity {
   id: ID! #poolid
-  pool: Token
   token0: Token
   token1: Token
 
@@ -97,7 +98,7 @@ type ProvisionPool @entity {
 
 type ProvisionPoolHourlyData @entity {
   id: ID! # poolid-time
-  pool: Token
+  pool: ProvisionPool
 
   token0Amount: BigInt
   token1Amount: BigInt

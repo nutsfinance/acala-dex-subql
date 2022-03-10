@@ -16,8 +16,6 @@ export class ProvisionPool implements Entity {
 
     public id: string;
 
-    public poolId?: string;
-
     public token0Id?: string;
 
     public token1Id?: string;
@@ -59,13 +57,6 @@ export class ProvisionPool implements Entity {
         }
     }
 
-
-    static async getByPoolId(poolId: string): Promise<ProvisionPool[] | undefined>{
-      
-      const records = await store.getByField('ProvisionPool', 'poolId', poolId);
-      return records.map(record => ProvisionPool.create(record as ProvisionPoolProps));
-      
-    }
 
     static async getByToken0Id(token0Id: string): Promise<ProvisionPool[] | undefined>{
       

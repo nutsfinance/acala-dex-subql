@@ -1,10 +1,9 @@
 import { FixedPointNumber as FN } from "@acala-network/sdk-core";
-import { getStartOfDay, getStartOfHour } from "@acala-network/subql-utils";
 import { AccountId, Balance, CurrencyId } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
 import { Token } from "../types";
-import { getAccount, getAddProvision, getProvisionPool, getProvisionPoolHourlyData, getToken, getTokenDailyData, getUserProvision, queryPrice } from "../utils";
+import { getAccount, getAddProvision, getProvisionPool, getProvisionPoolHourlyData, getStartOfDay, getStartOfHour, getToken, getTokenDailyData, getUserProvision, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
 
 export const addProvision = async (event: SubstrateEvent) => {
@@ -36,26 +35,21 @@ export const addProvision = async (event: SubstrateEvent) => {
 };
 
 export const updateToken = async (poolId: string, token0Name: string, token1Name: string, token0Amount: bigint, token1Amount: bigint, price0: FN, price1: FN) => {
-	const poolToken = await getToken(poolId);
 	const token0 = await getToken(token0Name);
 	const token1 = await getToken(token1Name);
 
-	poolToken.txCount = poolToken.txCount + BigInt(1);
 	token0.txCount = token0.txCount + BigInt(1);
 	token1.txCount = token1.txCount + BigInt(1);
 
-	poolToken.amount = poolToken.amount + token0Amount + token1Amount;
 	token0.amount = token0.amount + token0Amount;
 	token1.amount = token1.amount + token1Amount;
 
 	const token0Value = price0.times(FN.fromInner(token0.amount.toString(), token0.decimals));
 	const token1Value = price1.times(FN.fromInner(token1.amount.toString(), token1.decimals));
 
-	poolToken.tvl = BigInt(token0Value.toChainData()) + BigInt(token1Value.toChainData());
 	token0.tvl = BigInt(token0Value.toChainData());
 	token1.tvl = BigInt(token1Value.toChainData());
 
-	await poolToken.save();
 	await token0.save();
 	await token1.save();
 
@@ -67,34 +61,27 @@ export const updateToken = async (poolId: string, token0Name: string, token1Name
 export const updateDailyToken = async (hash: string, dailyTime: Date, poolId: string, token0: Token, token1: Token, token0Amount: bigint, token1Amount: bigint, price0: FN, price1: FN) => {
 	const dailyToken0 = await getTokenDailyData(`${token0.name}-${dailyTime.getTime()}`);
 	const dailyToken1 = await getTokenDailyData(`${token1.name}-${dailyTime.getTime()}`);
-	const dailyPoolToken = await getTokenDailyData(`${poolId}-${dailyTime.getTime()}`);
 
 	dailyToken0.tokenId = token0.name;
 	dailyToken1.tokenId = token1.name;
-	dailyPoolToken.tokenId = poolId;
 
-	dailyPoolToken.dailyTxCount = dailyPoolToken.dailyTxCount + BigInt(1);
 	dailyToken0.dailyTxCount = dailyToken0.dailyTxCount + BigInt(1);
 	dailyToken1.dailyTxCount = dailyToken1.dailyTxCount + BigInt(1);
 
-	dailyPoolToken.amount = dailyPoolToken.amount + token0Amount + token1Amount;
 	dailyToken0.amount = dailyToken0.amount + token0Amount;
 	dailyToken1.amount = dailyToken1.amount + token1Amount;
 
 	dailyToken0.updateAtBlockId = hash;
 	dailyToken1.updateAtBlockId = hash;
-	dailyPoolToken.updateAtBlockId = hash;
 
 	const dailyToken0Value = price0.times(FN.fromInner(dailyToken0.amount.toString(), token0.decimals));
 	const dailyToken1Value = price1.times(FN.fromInner(dailyToken1.amount.toString(), token1.decimals));
 
-	dailyPoolToken.tvl = BigInt(dailyToken0Value.toChainData()) + BigInt(dailyToken1Value.toChainData());
 	dailyToken0.tvl = BigInt(dailyToken0Value.toChainData());
 	dailyToken1.tvl = BigInt(dailyToken1Value.toChainData());
 
 	await dailyToken0.save();
 	await dailyToken1.save();
-	await dailyPoolToken.save();
 };
 
 export const addHourProvisionPool = async (hash: string, hourTime: Date, poolId: string, token0: string, token1: string, token0Amount: bigint, token1Amount: bigint, price0: bigint, price1: bigint) => {

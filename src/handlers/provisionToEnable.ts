@@ -1,9 +1,8 @@
 import { FixedPointNumber as FN } from "@acala-network/sdk-core";
-import { getStartOfDay, getStartOfHour } from "@acala-network/subql-utils";
 import { Balance, TradingPair } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
-import { getAccount, getDailyDex, getDex, getHourDex, getHourlyPool, getPool, getProvisionPool, getProvisionToEnabled, getToken, queryPrice } from "../utils";
+import { getAccount, getDailyDex, getDex, getHourDex, getHourlyPool, getPool, getProvisionPool, getProvisionToEnabled, getStartOfDay, getStartOfHour, getToken, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
 
 export const provisionToEnable = async (event: SubstrateEvent) => {
@@ -18,18 +17,15 @@ export const provisionToEnable = async (event: SubstrateEvent) => {
 	const token0Amount = BigInt(_token0Amount.toString());
 	const token1Amount = BigInt(_token1Amount.toString());
 
-	const poolToken = await getToken(poolId);
 	const token0 = await getToken(token0Id);
 	const token1 = await getToken(token1Id);
 
 	const token0Value = BigInt(price0.times(FN.fromInner(token0Amount.toString(), token0.decimals)).toChainData());
 	const token1Value = BigInt(price1.times(FN.fromInner(token1Amount.toString(), token1.decimals)).toChainData());
 
-	poolToken.amount = token0Amount + token1Amount;
 	token0.amount = token0Amount;
 	token1.amount = token1Amount;
 
-	poolToken.tvl = token0Value + token1Value;
 	token0.tvl = token0Value;
 	token1.tvl = token1Value;
 
@@ -41,7 +37,6 @@ export const provisionToEnable = async (event: SubstrateEvent) => {
 	pool.endAtBlockId = blockData.hash;
 	pool.endAt = blockData.timestamp;
 
-	await poolToken.save();
 	await token0.save();
 	await token1.save();
 	await pool.save();

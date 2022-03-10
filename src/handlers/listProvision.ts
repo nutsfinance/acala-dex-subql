@@ -11,22 +11,18 @@ export const listProvision = async (event: SubstrateEvent) => {
 
 	const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
 
-	const poolToken = await getToken(poolId);
 	const token0 = await getToken(token0Id);
 	const token1 = await getToken(token1Id);
 
-	poolToken.poolCount = poolToken.poolCount + 1;
 	token0.poolCount = token0.poolCount + 1;
 	token1.poolCount = token1.poolCount + 1;
 
 	const provisionPool = await getProvisionPool(poolId);
-	provisionPool.poolId = poolId;
 	provisionPool.token0Id = token0Id;
 	provisionPool.token1Id = token1Id;
 	provisionPool.startAtBlockId = blockData.hash;
 	provisionPool.startAt = blockData.timestamp;
 
-	await poolToken.save();
 	await token0.save();
 	await token1.save();
 	await provisionPool.save();
