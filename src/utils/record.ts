@@ -80,6 +80,7 @@ export const getDailyDex = async (id: string) => {
     newRecord.dailyTradeVolumeUSD = BigInt(0);
     newRecord.tradeVolumeUSD = BigInt(0);
     newRecord.totalTVL = BigInt(0);
+    newRecord.updateAtBlockId = '';
     return newRecord;
   } else {
     return record;
@@ -121,6 +122,7 @@ export const getDailyPool = async (id: string) => {
     newRecord.token1Low = BigInt(0);
     newRecord.token1Close = BigInt(0);
     newRecord.token1High = BigInt(0);
+    newRecord.updateAtBlockId = '';
     return newRecord;
 
   } else {
@@ -167,6 +169,7 @@ export const getHourDex = async (id: string) => {
     newRecord.hourlyTradeVolumeUSD = BigInt(0)
     newRecord.tradeVolumeUSD = BigInt(0)
     newRecord.totalTVL = BigInt(0)
+    newRecord.updateAtBlockId = '';
     return newRecord;
   } else {
     return record;
@@ -207,6 +210,7 @@ export const getHourlyPool = async (id: string) => {
     newRecord.token1High = BigInt(0);
     newRecord.token1Low = BigInt(0);
     newRecord.token1Close = BigInt(0);
+    newRecord.updateAtBlockId = '';
     return newRecord;
   } else {
     return record;
@@ -386,6 +390,7 @@ export const getProvisionPoolHourlyData = async (id: string) => {
     newRecord.hourlyToken0InAmount = BigInt(0);
     newRecord.hourlyToken1InAmount = BigInt(0);
     newRecord.timestamp = new Date()
+    newRecord.updateAtBlockId = '';
     return newRecord
   } else {
     return record
@@ -467,6 +472,7 @@ export const getTokenDailyData = async (id: string) => {
     newRecord.dailyTradeVolumeUSD = BigInt(0);
     newRecord.dailyTxCount = BigInt(0);
     newRecord.timestamp = new Date();
+    newRecord.updateAtBlockId = '';
     return newRecord
   } else {
     return record

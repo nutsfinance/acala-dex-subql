@@ -65,6 +65,7 @@ type TokenDailyData @entity {
   dailyTxCount: BigInt!
 
   timestamp: Date
+  updateAtBlock: Block
 }
 
 type ProvisionPool @entity {
@@ -106,6 +107,7 @@ type ProvisionPoolHourlyData @entity {
   hourlyToken1InAmount: BigInt
 
   timestamp: Date
+  updateAtBlock: Block
 }
 
 type UserProvision @entity {
@@ -193,6 +195,8 @@ type HourlyPool @entity {
   token1High: BigInt
   token1Low: BigInt
   token1Close: BigInt
+
+  updateAtBlock: Block
 }
 
 type DailyPool @entity {
@@ -241,6 +245,8 @@ type DailyPool @entity {
   token1High: BigInt
   token1Low: BigInt
   token1Close: BigInt
+  
+  updateAtBlock: Block
 }
 
 type Dex @entity {
@@ -262,6 +268,8 @@ type HourDex @entity {
   tradeVolumeUSD: BigInt # total trade volume
   totalTVL: BigInt # total tvl
   timestamp: Date
+
+  updateAtBlock: Block
 }
 
 type DailyDex @entity {
@@ -274,6 +282,8 @@ type DailyDex @entity {
   tradeVolumeUSD: BigInt # total trade volume
   totalTVL: BigInt # total tvl
   timestamp: Date
+  
+  updateAtBlock: Block
 }
 
 type PriceBundle @entity {

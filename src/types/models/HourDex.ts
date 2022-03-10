@@ -26,6 +26,8 @@ export class HourDex implements Entity {
 
     public timestamp?: Date;
 
+    public updateAtBlockId?: string;
+
 
     async save(): Promise<void>{
         let id = this.id;
@@ -47,6 +49,13 @@ export class HourDex implements Entity {
         }
     }
 
+
+    static async getByUpdateAtBlockId(updateAtBlockId: string): Promise<HourDex[] | undefined>{
+      
+      const records = await store.getByField('HourDex', 'updateAtBlockId', updateAtBlockId);
+      return records.map(record => HourDex.create(record as HourDexProps));
+      
+    }
 
 
     static create(record: HourDexProps): HourDex {

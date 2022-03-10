@@ -26,6 +26,8 @@ export class DailyDex implements Entity {
 
     public timestamp?: Date;
 
+    public updateAtBlockId?: string;
+
 
     async save(): Promise<void>{
         let id = this.id;
@@ -47,6 +49,13 @@ export class DailyDex implements Entity {
         }
     }
 
+
+    static async getByUpdateAtBlockId(updateAtBlockId: string): Promise<DailyDex[] | undefined>{
+      
+      const records = await store.getByField('DailyDex', 'updateAtBlockId', updateAtBlockId);
+      return records.map(record => DailyDex.create(record as DailyDexProps));
+      
+    }
 
 
     static create(record: DailyDexProps): DailyDex {

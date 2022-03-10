@@ -108,6 +108,7 @@ export const createHourPool = async (event: SubstrateEvent, token0Amount: bigint
   hourPool.token1High = BigInt(price1.toChainData());
   hourPool.token1Low = BigInt(price1.toChainData());
   hourPool.token1Close = BigInt(price1.toChainData());
+  hourPool.updateAtBlockId = event.block.block.hash.toString();
 
   await hourPool.save();
 }
@@ -139,6 +140,7 @@ export const createDailyPool = async (event: SubstrateEvent, token0Amount: bigin
   dailyPool.token1High = BigInt(price1.toChainData());
   dailyPool.token1Low = BigInt(price1.toChainData());
   dailyPool.token1Close = BigInt(price1.toChainData());
+  dailyPool.updateAtBlockId = event.block.block.hash.toString();
 
   await dailyPool.save();
 }
@@ -151,11 +153,11 @@ export const createDex = async (event: SubstrateEvent, totalTvl: bigint) => {
   dex.totalTVL = dex.totalTVL + totalTvl;
 
   await dex.save();
-  await createHourDex(dex.poolCount, dex.totalTVL, timestamp);
-  await createDailyDex(dex.poolCount, dex.totalTVL, timestamp);
+  await createHourDex(dex.poolCount, dex.totalTVL, timestamp, event.block.block.hash.toString());
+  await createDailyDex(dex.poolCount, dex.totalTVL, timestamp, event.block.block.hash.toString());
 }
 
-export const createHourDex = async (count: number, totalTvl: bigint, timestamp: Date) => {
+export const createHourDex = async (count: number, totalTvl: bigint, timestamp: Date, hash: string) => {
   const hourTime = getStartOfHour(timestamp);
   const hourDexId = `${hourTime.getTime()}`
   const dex = await getHourDex(hourDexId);
@@ -163,11 +165,12 @@ export const createHourDex = async (count: number, totalTvl: bigint, timestamp: 
   dex.poolCount = count;
   dex.totalTVL = totalTvl;
   dex.timestamp = hourTime;
+  dex.updateAtBlockId = hash;
 
   await dex.save();
 }
 
-export const createDailyDex = async (count: number, totalTvl: bigint, timestamp: Date) => {
+export const createDailyDex = async (count: number, totalTvl: bigint, timestamp: Date, hash: string) => {
   const dailyTime = getStartOfDay(timestamp);
   const dailyDexId = `${dailyTime.getTime()}`
   const dex = await getDailyDex(dailyDexId);
@@ -175,6 +178,7 @@ export const createDailyDex = async (count: number, totalTvl: bigint, timestamp:
   dex.poolCount = count;
   dex.totalTVL = totalTvl;
   dex.timestamp = dailyTime;
+  dex.updateAtBlockId = hash;
 
   await dex.save();
 }

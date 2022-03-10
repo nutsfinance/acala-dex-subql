@@ -74,6 +74,8 @@ export class HourlyPool implements Entity {
 
     public token1Close?: bigint;
 
+    public updateAtBlockId?: string;
+
 
     async save(): Promise<void>{
         let id = this.id;
@@ -113,6 +115,13 @@ export class HourlyPool implements Entity {
     static async getByToken1Id(token1Id: string): Promise<HourlyPool[] | undefined>{
       
       const records = await store.getByField('HourlyPool', 'token1Id', token1Id);
+      return records.map(record => HourlyPool.create(record as HourlyPoolProps));
+      
+    }
+
+    static async getByUpdateAtBlockId(updateAtBlockId: string): Promise<HourlyPool[] | undefined>{
+      
+      const records = await store.getByField('HourlyPool', 'updateAtBlockId', updateAtBlockId);
       return records.map(record => HourlyPool.create(record as HourlyPoolProps));
       
     }

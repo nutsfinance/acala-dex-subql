@@ -93,6 +93,7 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
     dailyToken0.dailyTradeVolumeUSD = BigInt(price0.times(FN.fromInner(dailyToken0.dailyTradeVolume.toString(), token0.decimals)).toChainData());
     dailyToken0.dailyTxCount = dailyToken0.dailyTxCount + BigInt(1);
     dailyToken0.timestamp = dailyTime;
+    dailyToken0.updateAtBlockId = blockData.hash;
     dailyToken1.tokenId = token1Name;
     dailyToken1.amount = token1.amount;
     dailyToken1.tvl = token1.tvl
@@ -100,6 +101,7 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
     dailyToken1.dailyTradeVolumeUSD = BigInt(price1.times(FN.fromInner(dailyToken1.dailyTradeVolume.toString(), token1.decimals)).toChainData());
     dailyToken1.dailyTxCount = dailyToken1.dailyTxCount + BigInt(1);
     dailyToken1.timestamp = dailyTime;
+    dailyToken1.updateAtBlockId = blockData.hash;
     DailyPoolToken.tokenId = poolId;
     DailyPoolToken.amount = token1.amount + token0.amount;
     DailyPoolToken.tvl = token1.tvl + token0.tvl
@@ -107,6 +109,7 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
     DailyPoolToken.dailyTradeVolumeUSD = BigInt(price1.times(FN.fromInner(DailyPoolToken.dailyTradeVolume.toString(), poolToken.decimals)).toChainData());
     DailyPoolToken.dailyTxCount = DailyPoolToken.dailyTxCount + BigInt(1);
     DailyPoolToken.timestamp = getStartOfDay(event.block.timestamp);
+    DailyPoolToken.updateAtBlockId = blockData.hash;
 
     await token0.save()
     await token1.save()
@@ -134,18 +137,6 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 
     const hourPoolId = `${poolId}-${hourTime.getTime()}`;
     const hourPool = await getHourlyPool(hourPoolId);
-    //when create a new hourly pool schema, need to update 'token*close' for the previous time period
-    if (hourPool.token0Id == '' && hourPool.token1Id === '' && hourPool.poolId === '') {
-      const preHourTime = getStartOfHour(dayjs(blockData.timestamp).subtract(1, 'hour').toDate());
-      const preHourPoolId = `${poolId}-${preHourTime.getTime()}`;
-      const preHourPool = await HourlyPool.get(preHourPoolId);
-      if (preHourPool) {
-        preHourPool.token0Close = BigInt(price0.toChainData());
-        preHourPool.token1Close = BigInt(price1.toChainData());
-
-        await preHourPool.save()
-      }
-    }
     hourPool.poolId = poolId;
     hourPool.timestamp = hourTime;
     hourPool.token0Id = token0Name;
@@ -169,22 +160,13 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
     hourPool.token0Low = hourPool.token0Low < BigInt(price0.toChainData()) ? hourPool.token0Low : BigInt(price0.toChainData());
     hourPool.token1High = hourPool.token1High > BigInt(price1.toChainData()) ? hourPool.token1High : BigInt(price1.toChainData());
     hourPool.token1Low = hourPool.token1Low < BigInt(price1.toChainData()) ? hourPool.token1Low : BigInt(price1.toChainData());
+    hourPool.token0Close = BigInt(price0.toChainData())
+    hourPool.token1Close = BigInt(price1.toChainData())
+    hourPool.updateAtBlockId = blockData.hash;
     await hourPool.save();
 
     const dailyPoolId = `${poolId}-${dailyTime.getTime()}`;
     const dailyPool = await getDailyPool(dailyPoolId);
-    //when create a new daily pool schema, need to update 'token*close' for the previous time period
-    if (dailyPool.token0Id == '' && dailyPool.token1Id === '' && dailyPool.poolId === '') {
-      const preDailyTime = getStartOfDay(dayjs(blockData.timestamp).subtract(1, 'day').toDate());
-      const preDailyPoolId = `${poolId}-${preDailyTime.getTime()}`;
-      const preDailyPool = await DailyPool.get(preDailyPoolId);
-      if (preDailyPool) {
-        preDailyPool.token0Close = BigInt(price0.toChainData());
-        preDailyPool.token1Close = BigInt(price1.toChainData());
-
-        await preDailyPool.save()
-      }
-    }
     dailyPool.poolId = poolId;
     dailyPool.timestamp = dailyTime;
     dailyPool.token0Id = token0Name;
@@ -208,6 +190,9 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
     dailyPool.token0Low = dailyPool.token0Low < BigInt(price0.toChainData()) ? dailyPool.token0Low : BigInt(price0.toChainData());
     dailyPool.token1High = dailyPool.token1High > BigInt(price1.toChainData()) ? dailyPool.token1High : BigInt(price1.toChainData());
     dailyPool.token1Low = dailyPool.token1Low < BigInt(price1.toChainData()) ? dailyPool.token1Low : BigInt(price1.toChainData());
+    dailyPool.token0Close = BigInt(price0.toChainData())
+    dailyPool.token1Close = BigInt(price1.toChainData())
+    dailyPool.updateAtBlockId = blockData.hash;
     await dailyPool.save();
 
     const tradeVolumeUSD = BigInt(price0.times(FN.fromInner(token0AmountAbs.toString(), token0.decimals)).add(price1.times(FN.fromInner(token1AmountAbs.toString(), token1.decimals))).toChainData());
@@ -222,6 +207,7 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
     hourDex.tradeVolumeUSD = dex.tradeVolumeUSD;
     hourDex.totalTVL = dex.totalTVL;
     hourDex.timestamp = hourTime;
+    hourDex.updateAtBlockId = blockData.hash;
     await hourDex.save();
 
     const dailyDex = await getDailyDex(dailyTime.getTime().toString());
@@ -229,6 +215,7 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
     dailyDex.tradeVolumeUSD = dex.tradeVolumeUSD;
     dailyDex.totalTVL = dex.totalTVL;
     dailyDex.timestamp = dailyTime;
+    dailyDex.updateAtBlockId = blockData.hash;
     await dailyDex.save();
     await createSwapHistory(event, owner.toString(), poolId, token0Name, token1Name);
   }

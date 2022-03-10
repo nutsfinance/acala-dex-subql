@@ -26,9 +26,9 @@ export const addProvision = async (event: SubstrateEvent) => {
   provisionPool.txCount = provisionPool.txCount + BigInt(1);
 
   const { token0, token1 } = await updateToken(poolId, token0Name, token1Name, token0Amount, token1Amount, price0, price1);
-  await updateDailyToken(dailyTime, poolId, token0, token1, token0Amount, token1Amount, price0, price1);
+  await updateDailyToken(blockData.hash, dailyTime, poolId, token0, token1, token0Amount, token1Amount, price0, price1);
   await provisionPool.save();
-  await addHourProvisionPool(hourTime, poolId, token0Name, token1Name, token0Amount, token1Amount, BigInt(price0.toChainData()), BigInt(price1.toChainData()));
+  await addHourProvisionPool(blockData.hash, hourTime, poolId, token0Name, token1Name, token0Amount, token1Amount, BigInt(price0.toChainData()), BigInt(price1.toChainData()));
   await addUserProvision(account.toString(), poolId, token0Amount, token1Amount);
   await createAddProvisionHistory(event, account.toString(), poolId, token0Name, token1Name, token0Amount, token1Amount, BigInt(price0.toChainData()), BigInt(price1.toChainData()));
 }
@@ -62,7 +62,7 @@ export const updateToken = async (poolId: string, token0Name: string, token1Name
   }
 }
 
-export const updateDailyToken = async (dailyTime: Date, poolId: string, token0: Token, token1: Token, token0Amount: bigint, token1Amount: bigint, price0: FN, price1: FN) => {
+export const updateDailyToken = async (hash: string, dailyTime: Date, poolId: string, token0: Token, token1: Token, token0Amount: bigint, token1Amount: bigint, price0: FN, price1: FN) => {
   const dailyToken0 = await getTokenDailyData(`${token0.name}-${dailyTime.getTime()}`)
   const dailyToken1 = await getTokenDailyData(`${token1.name}-${dailyTime.getTime()}`)
   const dailyPoolToken = await getTokenDailyData(`${poolId}-${dailyTime.getTime()}`)
@@ -79,6 +79,10 @@ export const updateDailyToken = async (dailyTime: Date, poolId: string, token0: 
   dailyToken0.amount = dailyToken0.amount + token0Amount
   dailyToken1.amount = dailyToken1.amount + token1Amount
 
+  dailyToken0.updateAtBlockId = hash;
+  dailyToken1.updateAtBlockId = hash;
+  dailyPoolToken.updateAtBlockId = hash;
+
   const dailyToken0Value = price0.times(FN.fromInner(dailyToken0.amount.toString(), token0.decimals));
   const dailyToken1Value = price1.times(FN.fromInner(dailyToken1.amount.toString(), token1.decimals));
 
@@ -91,7 +95,7 @@ export const updateDailyToken = async (dailyTime: Date, poolId: string, token0: 
   await dailyPoolToken.save();
 }
 
-export const addHourProvisionPool = async (hourTime: Date, poolId: string, token0: string, token1: string, token0Amount: bigint, token1Amount: bigint, price0: bigint, price1: bigint) => {
+export const addHourProvisionPool = async (hash: string, hourTime: Date, poolId: string, token0: string, token1: string, token0Amount: bigint, token1Amount: bigint, price0: bigint, price1: bigint) => {
   const hourPoolId = `${poolId}-${hourTime.getTime()}`
   const hourProvisionPool = await getProvisionPoolHourlyData(hourPoolId);
   hourProvisionPool.poolId = poolId;
@@ -102,6 +106,7 @@ export const addHourProvisionPool = async (hourTime: Date, poolId: string, token
   hourProvisionPool.hourlyToken0InAmount = hourProvisionPool.hourlyToken0InAmount + token0Amount;
   hourProvisionPool.hourlyToken1InAmount = hourProvisionPool.hourlyToken1InAmount + token1Amount;
   hourProvisionPool.timestamp = hourTime;
+  hourProvisionPool.updateAtBlockId = hash;
 
   await hourProvisionPool.save();
 }

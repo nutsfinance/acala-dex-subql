@@ -30,6 +30,8 @@ export class TokenDailyData implements Entity {
 
     public timestamp?: Date;
 
+    public updateAtBlockId?: string;
+
 
     async save(): Promise<void>{
         let id = this.id;
@@ -55,6 +57,13 @@ export class TokenDailyData implements Entity {
     static async getByTokenId(tokenId: string): Promise<TokenDailyData[] | undefined>{
       
       const records = await store.getByField('TokenDailyData', 'tokenId', tokenId);
+      return records.map(record => TokenDailyData.create(record as TokenDailyDataProps));
+      
+    }
+
+    static async getByUpdateAtBlockId(updateAtBlockId: string): Promise<TokenDailyData[] | undefined>{
+      
+      const records = await store.getByField('TokenDailyData', 'updateAtBlockId', updateAtBlockId);
       return records.map(record => TokenDailyData.create(record as TokenDailyDataProps));
       
     }

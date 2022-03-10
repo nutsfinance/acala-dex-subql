@@ -32,6 +32,8 @@ export class ProvisionPoolHourlyData implements Entity {
 
     public timestamp?: Date;
 
+    public updateAtBlockId?: string;
+
 
     async save(): Promise<void>{
         let id = this.id;
@@ -57,6 +59,13 @@ export class ProvisionPoolHourlyData implements Entity {
     static async getByPoolId(poolId: string): Promise<ProvisionPoolHourlyData[] | undefined>{
       
       const records = await store.getByField('ProvisionPoolHourlyData', 'poolId', poolId);
+      return records.map(record => ProvisionPoolHourlyData.create(record as ProvisionPoolHourlyDataProps));
+      
+    }
+
+    static async getByUpdateAtBlockId(updateAtBlockId: string): Promise<ProvisionPoolHourlyData[] | undefined>{
+      
+      const records = await store.getByField('ProvisionPoolHourlyData', 'updateAtBlockId', updateAtBlockId);
       return records.map(record => ProvisionPoolHourlyData.create(record as ProvisionPoolHourlyDataProps));
       
     }
