@@ -120,6 +120,7 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 const updateToken = async (event: SubstrateEvent, poolId: string, token0Name: string, token1Name: string, token0Increment: string, token1Increment: string, price0: FN, price1: FN) => {
 	const token0 = await getToken(token0Name);
 	const token1 = await getToken(token1Name);
+	await getToken(poolId);
 
 	const token0Changed = BigInt(token0Increment) > 0 ? BigInt(token0Increment) : -BigInt(token0Increment)
 	const token1Changed = BigInt(token1Increment) > 0 ? BigInt(token1Increment) : -BigInt(token1Increment)

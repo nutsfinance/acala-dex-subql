@@ -31,6 +31,7 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
 		const token0 = await getToken(token0Name);
 		const token1 = await getToken(token1Name);
+		await getToken(poolId);
 		const dailyToken0 = await getTokenDailyData(`${token0Name}-${dailyTime.getTime()}`);
 		const dailyToken1 = await getTokenDailyData(`${token1Name}-${dailyTime.getTime()}`);
 		const pool = await getPool(token0Name, token1Name, poolId);
@@ -221,6 +222,7 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
 		const token0 = await getToken(token0Name);
 		const token1 = await getToken(token1Name);
+		await getToken(poolId);
 		const dailyToken0 = await getTokenDailyData(`${token0Name}-${dailyTime.getTime()}`);
 		const dailyToken1 = await getTokenDailyData(`${token1Name}-${dailyTime.getTime()}`);
 		const pool = await getPool(token0Name, token1Name, poolId);

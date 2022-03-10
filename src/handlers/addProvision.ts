@@ -37,6 +37,7 @@ export const addProvision = async (event: SubstrateEvent) => {
 export const updateToken = async (poolId: string, token0Name: string, token1Name: string, token0Amount: bigint, token1Amount: bigint, price0: FN, price1: FN) => {
 	const token0 = await getToken(token0Name);
 	const token1 = await getToken(token1Name);
+	await getToken(poolId);
 
 	token0.txCount = token0.txCount + BigInt(1);
 	token1.txCount = token1.txCount + BigInt(1);

@@ -13,6 +13,7 @@ export const listProvision = async (event: SubstrateEvent) => {
 
 	const token0 = await getToken(token0Id);
 	const token1 = await getToken(token1Id);
+	await getToken(poolId);
 
 	token0.poolCount = token0.poolCount + 1;
 	token1.poolCount = token1.poolCount + 1;

@@ -2,8 +2,43 @@ import { FixedPointNumber as FN, forceToCurrencyName, MaybeCurrency, Token } fro
 import { SubstrateEvent } from "@subql/types";
 import { getPool, getPriceBundle, getToken } from ".";
 import { ensureBlock } from "../handlers";
+import { Pool } from "../types";
 
-async function getPriceFromDexPool (tokenA: string, tokenB: string) {
+interface PoolProps {
+	tokenTvl: FN;
+	price: FN;
+}
+
+const getAllRelatedPools = async (token: string) => {
+	const pools0 = await Pool.getByToken0Id(token);
+	const pools1 = await Pool.getByToken1Id(token);
+
+	const pools: PoolProps[] = [];
+	const totalTvl = FN.ZERO;
+	let price = FN.ZERO;
+
+	[...pools0, ...pools1].forEach(async pool => {
+		const token0 = await getToken(pool.token0Id);
+		const token1 = await getToken(pool.token1Id);
+		const amount0 = FN.fromInner(pool.token0Amount.toString() || "0", token0.decimals);
+		const amount1 = FN.fromInner(pool.token1Amount.toString() || "0", token1.decimals);
+		const price = amount0.isZero() || amount1.isZero() ? FN.ZERO : (pool.token0Id === token ? amount1.div(amount0) : amount0.div(amount1))
+		price.setPrecision(18);
+		totalTvl.add(FN.fromInner(pool.totalTVL.toString(), 18));
+		pools.push({
+			tokenTvl: FN.fromInner(pool.token0Id === token ? pool.token0TVL.toString() : pool.token1TVL.toString(), 18),
+			price: price,
+		})
+	});
+
+	pools.forEach(item => {
+		price = price.add(item.price.times(item.tokenTvl).div(totalTvl));
+	});
+
+	return price;
+}
+
+async function getPriceFromDexPool(tokenA: string, tokenB: string) {
 	const [_t0, _t1] = Token.sortTokenNames(tokenA, tokenB);
 	const token0 = await getToken(_t0);
 	const token1 = await getToken(_t1);

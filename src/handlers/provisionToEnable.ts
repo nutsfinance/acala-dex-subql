@@ -19,6 +19,7 @@ export const provisionToEnable = async (event: SubstrateEvent) => {
 
 	const token0 = await getToken(token0Id);
 	const token1 = await getToken(token1Id);
+	await getToken(poolId);
 
 	const token0Value = BigInt(price0.times(FN.fromInner(token0Amount.toString(), token0.decimals)).toChainData());
 	const token1Value = BigInt(price1.times(FN.fromInner(token1Amount.toString(), token1.decimals)).toChainData());
