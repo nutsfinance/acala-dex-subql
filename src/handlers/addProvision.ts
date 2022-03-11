@@ -75,6 +75,9 @@ export const updateDailyToken = async (hash: string, dailyTime: Date, poolId: st
 	dailyToken0.updateAtBlockId = hash;
 	dailyToken1.updateAtBlockId = hash;
 
+	dailyToken0.timestamp = dailyTime
+	dailyToken1.timestamp = dailyTime
+
 	const dailyToken0Value = price0.times(FN.fromInner(dailyToken0.amount.toString(), token0.decimals));
 	const dailyToken1Value = price1.times(FN.fromInner(dailyToken1.amount.toString(), token1.decimals));
 
