@@ -33,8 +33,8 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	pool.token0TradeVolume = pool.token0TradeVolume + BigInt(token0Decrement);
 	pool.token1TradeVolume = pool.token1TradeVolume + BigInt(token1Decrement);
 	pool.tradeVolumeUSD = pool.tradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
-	pool.token0TVL = BigInt(price0.times(FN.fromInner(pool.token0Amount.toString())).toChainData());
-	pool.token1TVL = BigInt(price1.times(FN.fromInner(pool.token1Amount.toString())).toChainData());
+	pool.token0TVL = BigInt(price0.times(FN.fromInner(pool.token0Amount.toString(), token0.decimals)).toChainData());
+	pool.token1TVL = BigInt(price1.times(FN.fromInner(pool.token1Amount.toString(), token1.decimals)).toChainData());
 	pool.totalTVL = pool.token0TVL + pool.token1TVL;
 	pool.txCount = pool.txCount + BigInt(1);
 	await pool.save();

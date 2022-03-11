@@ -113,8 +113,8 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		pool.token0TradeVolume = pool.token0TradeVolume + token0AmountAbs;
 		pool.token1TradeVolume = pool.token1TradeVolume + token1AmountAbs;
 		pool.tradeVolumeUSD = pool.tradeVolumeUSD + token0ChangedUSD + token1ChangedUSD;
-		pool.token0TVL = BigInt(price0.times(FN.fromInner(pool.token0Amount.toString())).toChainData());
-		pool.token1TVL = BigInt(price1.times(FN.fromInner(pool.token1Amount.toString())).toChainData());
+		pool.token0TVL = BigInt(price0.times(FN.fromInner(pool.token0Amount.toString(), token0.decimals)).toChainData());
+		pool.token1TVL = BigInt(price1.times(FN.fromInner(pool.token1Amount.toString(), token1.decimals)).toChainData());
 		pool.totalTVL = pool.token0TVL + pool.token1TVL;
 		pool.txCount = pool.txCount + BigInt(1);
 		await pool.save();
@@ -286,8 +286,8 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		pool.token0TradeVolume = pool.token0TradeVolume + token0AmountAbs;
 		pool.token1TradeVolume = pool.token1TradeVolume + token1AmountAbs;
 		pool.tradeVolumeUSD = pool.tradeVolumeUSD + token0ChangedUSD + token1ChangedUSD;
-		pool.token0TVL = BigInt(price0.times(FN.fromInner(pool.token0Amount.toString())).toChainData());
-		pool.token1TVL = BigInt(price1.times(FN.fromInner(pool.token1Amount.toString())).toChainData());
+		pool.token0TVL = BigInt(price0.times(FN.fromInner(pool.token0Amount.toString(), token0.decimals)).toChainData());
+		pool.token1TVL = BigInt(price1.times(FN.fromInner(pool.token1Amount.toString(), token1.decimals)).toChainData());
 		pool.totalTVL = pool.token0TVL + pool.token1TVL;
 		pool.txCount = pool.txCount + BigInt(1);
 		await pool.save();
