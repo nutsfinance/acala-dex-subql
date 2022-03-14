@@ -13,8 +13,8 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
 	const token0Increment = (token0Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
 	const token1Increment = (token1Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
-	const price0 = await queryPrice(event, token0Name);
-	const price1 = await queryPrice(event, token1Name);
+	const price0 = await queryPrice(token0Name);
+	const price1 = await queryPrice(token1Name);
 	const hourTime = getStartOfHour(blockData.timestamp);
 	const dailyTime = getStartOfDay(blockData.timestamp);
 

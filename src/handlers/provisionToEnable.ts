@@ -11,8 +11,8 @@ export const provisionToEnable = async (event: SubstrateEvent) => {
 	const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
 	const blockData = await ensureBlock(event);
 
-	const price0 = await queryPrice(event, token0Id);
-	const price1 = await queryPrice(event, token1Id);
+	const price0 = await queryPrice(token0Id);
+	const price1 = await queryPrice(token1Id);
 
 	const token0Amount = BigInt(_token0Amount.toString());
 	const token1Amount = BigInt(_token1Amount.toString());
@@ -48,8 +48,8 @@ export const createPool = async (event: SubstrateEvent) => {
 	const [tradingPair, _token0Amount, _token1Amount, _] = event.event.data as unknown as [TradingPair, Balance, Balance, Balance];
 	const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
 
-	const price0 = await queryPrice(event, token0Id);
-	const price1 = await queryPrice(event, token1Id);
+	const price0 = await queryPrice(token0Id);
+	const price1 = await queryPrice(token1Id);
 
 	const token0 = await getToken(token0Id);
 	const token1 = await getToken(token1Id);

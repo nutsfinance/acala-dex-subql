@@ -57,8 +57,8 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 			token0Amount = pool.token0Id === supplyTokenName ? _supplyAmount.toChainData() : (FN.ZERO.mul(targetAmount)).toChainData();
 			token1Amount = pool.token1Id === supplyTokenName ? _supplyAmount.toChainData() : (FN.ZERO.mul(targetAmount)).toChainData();
 		}
-		const price0 = await queryPrice(event, token0Name);
-		const price1 = await queryPrice(event, token1Name);
+		const price0 = await queryPrice(token0Name);
+		const price1 = await queryPrice(token1Name);
 
 		const token0AmountAbs = BigInt(token0Amount) > 0 ? BigInt(token0Amount) : -BigInt(token0Amount);
 		const token1AmountAbs = BigInt(token1Amount) > 1 ? BigInt(token1Amount) : -BigInt(token1Amount);
@@ -228,8 +228,8 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		const pool = await getPool(token0Name, token1Name, poolId);
 		const dex = await getDex();
 
-		const price0 = await queryPrice(event, token0.name);
-		const price1 = await queryPrice(event, token1.name);
+		const price0 = await queryPrice(token0.name);
+		const price1 = await queryPrice(token1.name);
 
 		const token0Amount = token0Name === supplyTokenName ? result0.toString() : "-" + result1.toString();
 		const token1Amount = token1Name === supplyTokenName ? result0.toString() : "-" + result1.toString();
