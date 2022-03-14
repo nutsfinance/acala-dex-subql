@@ -21,7 +21,7 @@ export const listProvision = async (event: SubstrateEvent) => {
 	const provisionPool = await getProvisionPool(poolId);
 	provisionPool.token0Id = token0Id;
 	provisionPool.token1Id = token1Id;
-	provisionPool.startAtBlockId = blockData.hash;
+	provisionPool.startAtBlockId = blockData.id;
 	provisionPool.startAt = blockData.timestamp;
 
 	await token0.save();
@@ -33,7 +33,6 @@ export const listProvision = async (event: SubstrateEvent) => {
 export const createlistProvisionHistroy = async (event: SubstrateEvent) => {
 	const [tradingPair] = event.event.data as unknown as [TradingPair];
 	const blockData = await ensureBlock(event);
-	const extrinsicData = await ensureExtrinsic(event);
 
 	const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
 	const history  = await getListProvision(`${blockData.hash}-${event.event.index.toString()}`);
@@ -41,16 +40,17 @@ export const createlistProvisionHistroy = async (event: SubstrateEvent) => {
 	history.token0Id = token0Id;
 	history.token1Id = token1Id;
 	history.blockId = blockData.id;
-	history.extrinsicId = extrinsicData.id;
 
-	const signer = event.extrinsic?.extrinsic?.signer?.toString() || `listProvision-singer-${blockData.hash}-${event.event.index.toString()}`;
+	if (event.extrinsic) {
+		const extrinsicData = await ensureExtrinsic(event);
+		history.extrinsicId = extrinsicData.id;
+		await getAccount(event.extrinsic.extrinsic.signer.toString());
 
-	await getAccount(signer);
+		extrinsicData.section = event.event.section;
+		extrinsicData.method = event.event.method;
+		extrinsicData.addressId = event.extrinsic.extrinsic.signer.toString();
 
-	extrinsicData.section = event.event.section;
-	extrinsicData.method = event.event.method;
-	extrinsicData.addressId = signer;
-
-	await extrinsicData.save();
+		await extrinsicData.save();
+	}
 	await history.save();
 };

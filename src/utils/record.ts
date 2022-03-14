@@ -52,8 +52,8 @@ export const getBlock = async (id: string) => {
 
 export const getToken = async (token: string) => {
 	const _collateral = await Token.get(token);
-	const decimals = await getTokenDecimals(api as any, token);
 	if (!_collateral) {
+		const decimals = await getTokenDecimals(api as any, token);
 		const newCollateral = new Token(token);
 		newCollateral.decimals = Number(decimals.toString());
 		newCollateral.name = token;
@@ -225,13 +225,14 @@ export const getPool = async (token0: string, token1: string, poolId?: string) =
 	if (!record) {
 		const newRecord = new Pool(id);
 		let position: Position;
+		let feeRate = 0;
 
 		try {
-			position = await api.query.dex.liquidityPool([getCurrencyObject(token0), getCurrencyObject(token1)]) as unknown as Position;
-		} catch (error) {
 			const currencyObject0: CurrencyObject = token0 === "lc://13" ? { LiquidCroadloan: 13 } : getCurrencyObject(token0);
 			const currencyObject1: CurrencyObject = token1 === "lc://13" ? { LiquidCroadloan: 13 } : getCurrencyObject(token1);
 			position = await api.query.dex.liquidityPool([currencyObject0, currencyObject1]) as unknown as Position;
+		} catch (error) {
+			
 		}
 
 		newRecord.token0Id = token0;
@@ -327,7 +328,6 @@ export const getAddLiquidity = async (id: string) => {
 		newRecord.price1 = BigInt(0);
 		newRecord.price0 = BigInt(0);
 		newRecord.blockId = "";
-		newRecord.extrinsicId = "";
 		newRecord.timestamp = new Date();
 		return newRecord;
 	} else {
@@ -350,7 +350,6 @@ export const getAddProvision = async (id: string) => {
 		newRecord.price1 = BigInt(0);
 		newRecord.price0 = BigInt(0);
 		newRecord.blockId = "";
-		newRecord.extrinsicId = "";
 		newRecord.timestamp = new Date();
 		return newRecord;
 	} else {
@@ -368,7 +367,6 @@ export const getListProvision = async (id: string) => {
 		newRecord.token0Id = "";
 		newRecord.token1Id = "";
 		newRecord.blockId = "";
-		newRecord.extrinsicId = "";
 		newRecord.timestamp = new Date();
 		return newRecord;
 	} else {
@@ -411,7 +409,6 @@ export const getProvisionToEnabled = async (id: string) => {
 		newRecord.token1Id = "";
 		newRecord.totalShareAmount = BigInt(0);
 		newRecord.blockId = "";
-		newRecord.extrinsicId = "";
 		newRecord.timestamp = new Date();
 		return newRecord;
 	} else {
@@ -435,7 +432,6 @@ export const getRemoveLiquidity = async (id: string) => {
 		newRecord.price1 = BigInt(0);
 		newRecord.shareAmount = BigInt(0);
 		newRecord.blockId = "";
-		newRecord.extrinsicId = "";
 		newRecord.timestamp = new Date();
 		return newRecord;
 	} else {

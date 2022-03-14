@@ -19,7 +19,7 @@ export const provisionToEnable = async (event: SubstrateEvent) => {
 	pool.token1Amount = token1Amount;
 	pool.initializeShare = BigInt(totalShareAmount.toString());
 
-	pool.endAtBlockId = blockData.hash;
+	pool.endAtBlockId = blockData.id;
 	pool.endAt = blockData.timestamp;
 
 	await pool.save();
@@ -86,7 +86,7 @@ export const createHourPool = async (event: SubstrateEvent, token0Amount: bigint
 	hourPool.token1High = BigInt(price1.toChainData());
 	hourPool.token1Low = BigInt(price1.toChainData());
 	hourPool.token1Close = BigInt(price1.toChainData());
-	hourPool.updateAtBlockId = event.block.block.hash.toString();
+	hourPool.updateAtBlockId = event.block.block.header.number.toString();
 
 	await hourPool.save();
 };
@@ -118,7 +118,7 @@ export const createDailyPool = async (event: SubstrateEvent, token0Amount: bigin
 	dailyPool.token1High = BigInt(price1.toChainData());
 	dailyPool.token1Low = BigInt(price1.toChainData());
 	dailyPool.token1Close = BigInt(price1.toChainData());
-	dailyPool.updateAtBlockId = event.block.block.hash.toString();
+	dailyPool.updateAtBlockId = event.block.block.header.number.toString();
 
 	await dailyPool.save();
 };
@@ -131,11 +131,11 @@ export const createDex = async (event: SubstrateEvent, totalTvl: bigint) => {
 	dex.totalTVL = dex.totalTVL + totalTvl;
 
 	await dex.save();
-	await createHourDex(dex.poolCount, dex.totalTVL, timestamp, event.block.block.hash.toString());
-	await createDailyDex(dex.poolCount, dex.totalTVL, timestamp, event.block.block.hash.toString());
+	await createHourDex(dex.poolCount, dex.totalTVL, timestamp, event.block.block.header.number.toString());
+	await createDailyDex(dex.poolCount, dex.totalTVL, timestamp, event.block.block.header.number.toString());
 };
 
-export const createHourDex = async (count: number, totalTvl: bigint, timestamp: Date, hash: string) => {
+export const createHourDex = async (count: number, totalTvl: bigint, timestamp: Date, number: string) => {
 	const hourTime = getStartOfHour(timestamp);
 	const hourDexId = `${hourTime.getTime()}`;
 	const dex = await getHourDex(hourDexId);
@@ -143,19 +143,19 @@ export const createHourDex = async (count: number, totalTvl: bigint, timestamp: 
 	dex.poolCount = count;
 	dex.totalTVL = totalTvl;
 	dex.timestamp = hourTime;
-	dex.updateAtBlockId = hash;
+	dex.updateAtBlockId = number;
 
 	await dex.save();
 };
 
-export const createDailyDex = async (count: number, totalTvl: bigint, timestamp: Date, hash: string) => {
+export const createDailyDex = async (count: number, totalTvl: bigint, timestamp: Date, number: string) => {
 	const dailyTime = getStartOfDay(timestamp);
 	const dex = await getDailyDex(dailyTime.getTime().toString());
 
 	dex.poolCount = count;
 	dex.totalTVL = totalTvl;
 	dex.timestamp = dailyTime;
-	dex.updateAtBlockId = hash;
+	dex.updateAtBlockId = number;
 
 	await dex.save();
 };
@@ -164,7 +164,6 @@ export const createProvisionToEnableHistory = async (event: SubstrateEvent) => {
 	// [trading_pair, pool_0_amount, pool_1_amount, total_share_amount\]
 	const [tradingPair, token0Amount, token1Amount] = event.event.data as unknown as [TradingPair, Balance, Balance, Balance];
 	const blockData = await ensureBlock(event);
-	const extrinsicData = await ensureExtrinsic(event);
 	const {address} =await getAccount(event.extrinsic.extrinsic.signer.toString());
 
 	const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
@@ -177,13 +176,18 @@ export const createProvisionToEnableHistory = async (event: SubstrateEvent) => {
 	history.token0Amount = BigInt(token0Amount.toString());
 	history.token1Amount = BigInt(token1Amount.toString());
 	history.blockId = blockData.id;
-	history.extrinsicId = extrinsicData.id;
 	history.timestamp = blockData.timestamp;
 
-	extrinsicData.section = event.event.section;
-	extrinsicData.method = event.event.method;
-	extrinsicData.addressId = address;
+	if (event.extrinsic) {
+		const extrinsicData = await ensureExtrinsic(event);
+		history.extrinsicId = extrinsicData.id;
+		await getAccount(event.extrinsic.extrinsic.signer.toString());
 
-	await extrinsicData.save();
+		extrinsicData.section = event.event.section;
+		extrinsicData.method = event.event.method;
+		extrinsicData.addressId = event.extrinsic.extrinsic.signer.toString();
+
+		await extrinsicData.save();
+	}
 	await history.save();
 };

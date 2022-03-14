@@ -377,7 +377,6 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 
 const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: string, token0Name: string, token1Name: string) => {
 	const blockData = await ensureBlock(event);
-	const extrinsicData = await ensureExtrinsic(event);
 	await getAccount(owner);
 
 	const historyId = `${blockData.hash}-${event.event.index.toString()}`;
@@ -388,14 +387,15 @@ const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: s
 	history.token0Id = token0Name;
 	history.token1Id = token1Name;
 
-	const signer = event.extrinsic?.extrinsic?.signer?.toString() || `swap-singer-${blockData.hash}-${event.event.index.toString()}`;
+	if (event.extrinsic) {
+		const extrinsicData = await ensureExtrinsic(event);
+		await getAccount(event.extrinsic.extrinsic.signer.toString());
 
-	await getAccount(signer);
+		extrinsicData.section = event.event.section;
+		extrinsicData.method = event.event.method;
+		extrinsicData.addressId = event.extrinsic.extrinsic.signer.toString();
 
-	extrinsicData.section = event.event.section;
-	extrinsicData.method = event.event.method;
-	extrinsicData.addressId = signer;
-
-	await extrinsicData.save();
+		await extrinsicData.save();
+	}
 	await history.save();
 };

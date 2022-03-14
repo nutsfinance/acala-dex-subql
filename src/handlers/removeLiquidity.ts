@@ -63,7 +63,7 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	hourPool.token1Low = hourPool.token1Low < BigInt(price1.toChainData()) ? hourPool.token1Low : BigInt(price1.toChainData());
 	hourPool.token0Close = BigInt(price0.toChainData());
 	hourPool.token1Close = BigInt(price1.toChainData());
-	hourPool.updateAtBlockId = blockData.hash;
+	hourPool.updateAtBlockId = blockData.id;
 	await hourPool.save();
 
 	const dailyPoolId = `${poolId}-${dailyTime.getTime()}`;
@@ -90,7 +90,7 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	dailyPool.token1Low = dailyPool.token1Low < BigInt(price1.toChainData()) ? dailyPool.token1Low : BigInt(price1.toChainData());
 	dailyPool.token0Close = BigInt(price0.toChainData());
 	dailyPool.token1Close = BigInt(price1.toChainData());
-	dailyPool.updateAtBlockId = blockData.hash;
+	dailyPool.updateAtBlockId = blockData.id;
 	await dailyPool.save();
 
 	const dex = await getDex("dex");
@@ -103,7 +103,7 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	hourDex.tradeVolumeUSD = dex.tradeVolumeUSD;
 	hourDex.totalTVL = dex.totalTVL;
 	hourDex.timestamp = hourTime;
-	hourDex.updateAtBlockId = blockData.hash;
+	hourDex.updateAtBlockId = blockData.id;
 	await hourDex.save();
 
 	const dailyDex = await getDailyDex(dailyTime.getTime().toString());
@@ -111,7 +111,7 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	dailyDex.tradeVolumeUSD = dex.tradeVolumeUSD;
 	dailyDex.totalTVL = dex.totalTVL;
 	dailyDex.timestamp = dailyTime;
-	dailyDex.updateAtBlockId = blockData.hash;
+	dailyDex.updateAtBlockId = blockData.id;
 	await dailyDex.save();
 
 	await createRemoveLiquidyHistory(event, price0, price1);
@@ -149,7 +149,7 @@ const updateToken = async (event: SubstrateEvent, poolId: string, token0Name: st
 	Dailytoken0.dailyTradeVolumeUSD = Dailytoken0.dailyTradeVolumeUSD + token0ChangedUSD;
 	Dailytoken0.dailyTxCount = Dailytoken0.dailyTxCount + BigInt(1);
 	Dailytoken0.timestamp = dailyTime;
-	Dailytoken0.updateAtBlockId = event.block.block.hash.toString();
+	Dailytoken0.updateAtBlockId = event.block.block.header.number.toString();
 	Dailytoken1.tokenId = token1Name;
 	Dailytoken1.amount = token1.amount;
 	Dailytoken1.tvl = token1.tvl;
@@ -157,7 +157,7 @@ const updateToken = async (event: SubstrateEvent, poolId: string, token0Name: st
 	Dailytoken1.dailyTradeVolumeUSD = Dailytoken1.dailyTradeVolumeUSD + token1ChangedUSD;
 	Dailytoken1.dailyTxCount = Dailytoken1.dailyTxCount + BigInt(1);
 	Dailytoken1.timestamp = dailyTime;
-	Dailytoken1.updateAtBlockId = event.block.block.hash.toString();
+	Dailytoken1.updateAtBlockId = event.block.block.header.number.toString();
 
 	await token0.save();
 	await token1.save();
@@ -171,7 +171,6 @@ export const createRemoveLiquidyHistory = async (event: SubstrateEvent, price0: 
 	// [who, currency_id_0, pool_0_increment, currency_id_1, pool_1_increment, share_increment\]
 	const [owner, currency0, pool0Decrement, currency1, pool1Decrement] = event.event.data as unknown as [AccountId, CurrencyId, Balance, CurrencyId, Balance];
 	const blockData = await ensureBlock(event);
-	const extrinsicData = await ensureExtrinsic(event);
 
 	const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
 	const token0Decrement = (token0Name === forceToCurrencyName(currency0) ? pool0Decrement : pool1Decrement).toString();
@@ -188,15 +187,18 @@ export const createRemoveLiquidyHistory = async (event: SubstrateEvent, price0: 
 	history.price0 = BigInt(price0.toChainData())
 	history.price1 = BigInt(price1.toChainData())
 	history.blockId = blockData.id;
-	history.extrinsicId = extrinsicData.id;
 	history.timestamp = blockData.timestamp;
 
-	await getAccount(event.extrinsic.extrinsic.signer.toString());
+	if (event.extrinsic) {
+		const extrinsicData = await ensureExtrinsic(event);
+		history.extrinsicId = extrinsicData.id;
+		await getAccount(event.extrinsic.extrinsic.signer.toString());
 
-	extrinsicData.section = event.event.section;
-	extrinsicData.method = event.event.method;
-	extrinsicData.addressId = event.extrinsic.extrinsic.signer.toString();
+		extrinsicData.section = event.event.section;
+		extrinsicData.method = event.event.method;
+		extrinsicData.addressId = event.extrinsic.extrinsic.signer.toString();
 
-	await extrinsicData.save();
+		await extrinsicData.save();
+	}
 	await history.save();
 };
