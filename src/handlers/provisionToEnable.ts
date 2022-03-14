@@ -8,27 +8,11 @@ import { getPoolId } from "../utils/getPoolId";
 export const provisionToEnable = async (event: SubstrateEvent) => {
 	// [trading_pair, pool_0_amount, pool_1_amount, total_share_amount]
 	const [tradingPair, _token0Amount, _token1Amount, totalShareAmount] = event.event.data as unknown as [TradingPair, Balance, Balance, Balance];
-	const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
+	const [poolId] = getPoolId(tradingPair[0], tradingPair[1]);
 	const blockData = await ensureBlock(event);
-
-	const price0 = await queryPrice(token0Id);
-	const price1 = await queryPrice(token1Id);
 
 	const token0Amount = BigInt(_token0Amount.toString());
 	const token1Amount = BigInt(_token1Amount.toString());
-
-	const token0 = await getToken(token0Id);
-	const token1 = await getToken(token1Id);
-	await getToken(poolId);
-
-	const token0Value = BigInt(price0.times(FN.fromInner(token0Amount.toString(), token0.decimals)).toChainData());
-	const token1Value = BigInt(price1.times(FN.fromInner(token1Amount.toString(), token1.decimals)).toChainData());
-
-	token0.amount = token0Amount;
-	token1.amount = token1Amount;
-
-	token0.tvl = token0Value;
-	token1.tvl = token1Value;
 
 	const pool = await getProvisionPool(poolId);
 	pool.token0Amount = token0Amount;
@@ -38,8 +22,6 @@ export const provisionToEnable = async (event: SubstrateEvent) => {
 	pool.endAtBlockId = blockData.hash;
 	pool.endAt = blockData.timestamp;
 
-	await token0.save();
-	await token1.save();
 	await pool.save();
 };
 
@@ -65,8 +47,8 @@ export const createPool = async (event: SubstrateEvent) => {
 	pool.token1Id = token1Id;
 	pool.token0Amount = token0Amount;
 	pool.token1Amount = token1Amount;
-	pool.token0Price = BigInt(price0.toChainData());
-	pool.token1Price = BigInt(price1.toChainData());
+	pool.token0Price = BigInt(FN.fromInner(parseInt(token0Amount.toString()) / parseInt(token1Amount.toString()), 18).toChainData());
+	pool.token1Price = BigInt(FN.fromInner(parseInt(token1Amount.toString()) / parseInt(token0Amount.toString()), 18).toChainData());
 	pool.token0TVL = token0Value;
 	pool.token1TVL = token1Value;
 	pool.totalTVL = token0Value + token1Value;
@@ -91,8 +73,8 @@ export const createHourPool = async (event: SubstrateEvent, token0Amount: bigint
 	hourPool.token1Id = token1Id;
 	hourPool.token0Amount = token0Amount;
 	hourPool.token1Amount = token1Amount;
-	hourPool.token0Price = BigInt(price0.toChainData());
-	hourPool.token1Price = BigInt(price1.toChainData());
+	hourPool.token0Price = BigInt(FN.fromInner(parseInt(token0Amount.toString()) / parseInt(token1Amount.toString()), 18).toChainData());
+	hourPool.token1Price = BigInt(FN.fromInner(parseInt(token1Amount.toString()) / parseInt(token0Amount.toString()), 18).toChainData());
 	hourPool.token0TVL = BigInt(price0.times(FN.fromInner(token0Amount.toString(), decimals0)).toChainData());
 	hourPool.token1TVL = BigInt(price1.times(FN.fromInner(token1Amount.toString(), decimals1)).toChainData());
 	hourPool.totalTVL = hourPool.token0TVL + hourPool.token1TVL;
@@ -123,8 +105,8 @@ export const createDailyPool = async (event: SubstrateEvent, token0Amount: bigin
 	dailyPool.token1Id = token1Id;
 	dailyPool.token0Amount = token0Amount;
 	dailyPool.token1Amount = token1Amount;
-	dailyPool.token0Price = BigInt(price0.toChainData());
-	dailyPool.token1Price = BigInt(price1.toChainData());
+	dailyPool.token0Price = BigInt(FN.fromInner(parseInt(token0Amount.toString()) / parseInt(token1Amount.toString()), 18).toChainData());
+	dailyPool.token1Price = BigInt(FN.fromInner(parseInt(token1Amount.toString()) / parseInt(token0Amount.toString()), 18).toChainData());
 	dailyPool.token0TVL = BigInt(price0.times(FN.fromInner(token0Amount.toString(), decimals0)).toChainData());
 	dailyPool.token1TVL = BigInt(price1.times(FN.fromInner(token1Amount.toString(), decimals1)).toChainData());
 	dailyPool.totalTVL = dailyPool.token0TVL + dailyPool.token1TVL;

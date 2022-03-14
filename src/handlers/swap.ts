@@ -106,8 +106,8 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 
 		pool.token0Amount = pool.token0Amount + BigInt(token0Amount);
 		pool.token1Amount = pool.token1Amount + BigInt(token1Amount);
-		pool.token0Price = BigInt(price0.toChainData());
-		pool.token1Price = BigInt(price1.toChainData());
+		pool.token0Price = BigInt(FN.fromInner(parseInt(pool.token0Amount.toString()) / parseInt(pool.token1Amount.toString()), 18).toChainData());
+		pool.token1Price = BigInt(FN.fromInner(parseInt(pool.token1Amount.toString()) / parseInt(pool.token0Amount.toString()), 18).toChainData());
 		pool.feeToken0Amount = pool.feeToken0Amount + token0fee;
 		pool.feeToken1Amount = pool.feeToken1Amount + token1fee;
 		pool.token0TradeVolume = pool.token0TradeVolume + token0AmountAbs;
@@ -127,8 +127,8 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		hourPool.token1Id = token1Name;
 		hourPool.token0Amount = pool.token0Amount;
 		hourPool.token1Amount = pool.token1Amount;
-		hourPool.token0Price = BigInt(price0.toChainData());
-		hourPool.token1Price = BigInt(price1.toChainData());
+		hourPool.token0Price = BigInt(FN.fromInner(parseInt(hourPool.token0Amount.toString()) / parseInt(hourPool.token1Amount.toString()), 18).toChainData());
+		hourPool.token1Price = BigInt(FN.fromInner(parseInt(hourPool.token1Amount.toString()) / parseInt(hourPool.token0Amount.toString()), 18).toChainData());
 		hourPool.feeVolumeUSD = hourPool.feeVolumeUSD + token0fee + token1fee;
 		hourPool.feeToken0Amount = hourPool.feeToken0Amount + token0fee;
 		hourPool.feeToken1Amount = hourPool.feeToken1Amount + token1fee;
@@ -157,8 +157,8 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		dailyPool.token1Id = token1Name;
 		dailyPool.token0Amount = pool.token0Amount;
 		dailyPool.token1Amount = pool.token1Amount;
-		dailyPool.token0Price = BigInt(price0.toChainData());
-		dailyPool.token1Price = BigInt(price1.toChainData());
+		dailyPool.token0Price = BigInt(FN.fromInner(parseInt(dailyPool.token0Amount.toString()) / parseInt(dailyPool.token1Amount.toString()), 18).toChainData());
+		dailyPool.token1Price = BigInt(FN.fromInner(parseInt(dailyPool.token1Amount.toString()) / parseInt(dailyPool.token0Amount.toString()), 18).toChainData());
 		dailyPool.feeVolumeUSD = dailyPool.feeVolumeUSD + token0fee + token1fee;
 		dailyPool.feeToken0Amount = dailyPool.feeToken0Amount + token0fee;
 		dailyPool.feeToken1Amount = dailyPool.feeToken1Amount + token1fee;
@@ -279,8 +279,8 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 
 		pool.token0Amount = pool.token0Amount + BigInt(token0Amount);
 		pool.token1Amount = pool.token1Amount + BigInt(token1Amount);
-		pool.token0Price = BigInt(price0.toChainData());
-		pool.token1Price = BigInt(price1.toChainData());
+		pool.token0Price = BigInt(FN.fromInner(parseInt(pool.token0Amount.toString()) / parseInt(pool.token1Amount.toString()), 18).toChainData());
+		pool.token1Price = BigInt(FN.fromInner(parseInt(pool.token1Amount.toString()) / parseInt(pool.token0Amount.toString()), 18).toChainData());
 		pool.feeToken0Amount = pool.feeToken0Amount + token0fee;
 		pool.feeToken1Amount = pool.feeToken1Amount + token1fee;
 		pool.token0TradeVolume = pool.token0TradeVolume + token0AmountAbs;
@@ -300,8 +300,8 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		hourPool.token1Id = token1Name;
 		hourPool.token0Amount = pool.token0Amount;
 		hourPool.token1Amount = pool.token1Amount;
-		hourPool.token0Price = BigInt(price0.toChainData());
-		hourPool.token1Price = BigInt(price1.toChainData());
+		hourPool.token0Price = BigInt(FN.fromInner(parseInt(hourPool.token0Amount.toString()) / parseInt(hourPool.token1Amount.toString()), 18).toChainData());
+		hourPool.token1Price = BigInt(FN.fromInner(parseInt(hourPool.token1Amount.toString()) / parseInt(hourPool.token0Amount.toString()), 18).toChainData());
 		hourPool.feeVolumeUSD = hourPool.feeVolumeUSD + token0fee + token1fee;
 		hourPool.feeToken0Amount = hourPool.feeToken0Amount + token0fee;
 		hourPool.feeToken1Amount = hourPool.feeToken1Amount + token1fee;
@@ -330,8 +330,8 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		dailyPool.token1Id = token1Name;
 		dailyPool.token0Amount = pool.token0Amount;
 		dailyPool.token1Amount = pool.token1Amount;
-		dailyPool.token0Price = BigInt(price0.toChainData());
-		dailyPool.token1Price = BigInt(price1.toChainData());
+		dailyPool.token0Price = BigInt(FN.fromInner(parseInt(dailyPool.token0Amount.toString()) / parseInt(dailyPool.token1Amount.toString()), 18).toChainData());
+		dailyPool.token1Price = BigInt(FN.fromInner(parseInt(dailyPool.token1Amount.toString()) / parseInt(dailyPool.token0Amount.toString()), 18).toChainData());
 		dailyPool.feeVolumeUSD = dailyPool.feeVolumeUSD + token0fee + token1fee;
 		dailyPool.feeToken0Amount = dailyPool.feeToken0Amount + token0fee;
 		dailyPool.feeToken1Amount = dailyPool.feeToken1Amount + token1fee;
