@@ -28,8 +28,8 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 
 	pool.token0Amount = pool.token0Amount - BigInt(token0Decrement);
 	pool.token1Amount = pool.token1Amount - BigInt(token1Decrement);
-	pool.token0Price = BigInt(new FN(parseInt(pool.token0Amount.toString()) / parseInt(pool.token1Amount.toString()), 18).toChainData());
-	pool.token1Price = BigInt(new FN(parseInt(pool.token1Amount.toString()) / parseInt(pool.token0Amount.toString()), 18).toChainData());
+	pool.token0Price = BigInt(price0.toChainData())
+	pool.token1Price = BigInt(price1.toChainData())
 	pool.token0TradeVolume = pool.token0TradeVolume + BigInt(token0Decrement);
 	pool.token1TradeVolume = pool.token1TradeVolume + BigInt(token1Decrement);
 	pool.tradeVolumeUSD = pool.tradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
@@ -47,8 +47,8 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	hourPool.token1Id = token1Name;
 	hourPool.token0Amount = pool.token0Amount;
 	hourPool.token1Amount = pool.token1Amount;
-	hourPool.token0Price = BigInt(new FN(parseInt(hourPool.token0Amount.toString()) / parseInt(hourPool.token1Amount.toString()), 18).toChainData());
-	hourPool.token1Price = BigInt(new FN(parseInt(hourPool.token1Amount.toString()) / parseInt(hourPool.token0Amount.toString()), 18).toChainData());
+	hourPool.token0Price = BigInt(price0.toChainData())
+	hourPool.token1Price = BigInt(price1.toChainData())
 	hourPool.hourlyToken0TradeVolume = hourPool.hourlyToken0TradeVolume + BigInt(token0Decrement);
 	hourPool.hourlyToken1TradeVolume = hourPool.hourlyToken1TradeVolume + BigInt(token1Decrement);
 	hourPool.hourlyTradeVolumeUSD = hourPool.hourlyTradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
@@ -74,8 +74,8 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	dailyPool.token1Id = token1Name;
 	dailyPool.token0Amount = pool.token0Amount;
 	dailyPool.token1Amount = pool.token1Amount;
-	dailyPool.token0Price = BigInt(new FN(parseInt(dailyPool.token0Amount.toString()) / parseInt(dailyPool.token1Amount.toString()), 18).toChainData());
-	dailyPool.token1Price = BigInt(new FN(parseInt(dailyPool.token1Amount.toString()) / parseInt(dailyPool.token0Amount.toString()), 18).toChainData());
+	dailyPool.token0Price = BigInt(price0.toChainData())
+	dailyPool.token1Price = BigInt(price1.toChainData())
 	dailyPool.dailyToken0TradeVolume = dailyPool.dailyToken0TradeVolume + BigInt(token0Decrement);
 	dailyPool.dailyToken1TradeVolume = dailyPool.dailyToken1TradeVolume + BigInt(token1Decrement);
 	dailyPool.dailyTradeVolumeUSD = dailyPool.dailyTradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
@@ -185,8 +185,8 @@ export const createRemoveLiquidyHistory = async (event: SubstrateEvent, price0: 
 	history.token1Id = token1Name;
 	history.token0Amount = BigInt(token0Decrement.toString());
 	history.token1Amount = BigInt(token1Decrement.toString());
-	history.price0 = BigInt(new FN(parseInt(token0Decrement.toString()) / parseInt(token1Decrement.toString()), 18).toChainData());
-	history.price1 = BigInt(new FN(parseInt(token1Decrement.toString()) / parseInt(token0Decrement.toString()), 18).toChainData());
+	history.price0 = BigInt(price0.toChainData())
+	history.price1 = BigInt(price1.toChainData())
 	history.blockId = blockData.id;
 	history.extrinsicId = extrinsicData.id;
 	history.timestamp = blockData.timestamp;
