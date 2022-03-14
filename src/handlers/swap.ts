@@ -388,11 +388,13 @@ const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: s
 	history.token0Id = token0Name;
 	history.token1Id = token1Name;
 
-	await getAccount(event.extrinsic.extrinsic.signer.toString());
+	const signer = event.extrinsic?.extrinsic?.signer?.toString() || `listProvision-singer-${blockData.hash}-${event.event.index.toString()}`;
+
+	await getAccount(signer);
 
 	extrinsicData.section = event.event.section;
 	extrinsicData.method = event.event.method;
-	extrinsicData.addressId = event.extrinsic.extrinsic.signer.toString();
+	extrinsicData.addressId = signer;
 
 	await extrinsicData.save();
 	await history.save();
