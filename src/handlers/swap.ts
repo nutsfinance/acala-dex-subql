@@ -388,7 +388,7 @@ const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: s
 	history.token0Id = token0Name;
 	history.token1Id = token1Name;
 
-	const signer = event.extrinsic?.extrinsic?.signer?.toString() || `listProvision-singer-${blockData.hash}-${event.event.index.toString()}`;
+	const signer = event.extrinsic?.extrinsic?.signer?.toString() || `swap-singer-${blockData.hash}-${event.event.index.toString()}`;
 
 	await getAccount(signer);
 
