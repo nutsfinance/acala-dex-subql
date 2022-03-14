@@ -13,7 +13,7 @@ const getOtherPrice = async (token: string, stakingCurrency: string, StableCurre
 	const StablePrice = await getStableCurrencyPrice();
 
 	const partA = rateA.mul(StakingPrice).times(amountA).div(amountA.add(amountB));
-	const partB = rateA.mul(StablePrice).times(amountB).div(amountA.add(amountB));
+	const partB = rateB.mul(StablePrice).times(amountB).div(amountA.add(amountB));
 
 	return partA.add(partB);
 }
@@ -26,7 +26,7 @@ const getPriceFromDexPool = async (tokenA: string, tokenB: string) => {
 
 	if (!pool || pool.txCount == BigInt(0)) return {
 		rate: FN.ZERO,
-		amount: BigInt(0)
+		amount: BigInt(1)
 	};
 
 	const amount0 = FN.fromInner(pool.token0Amount.toString() || "0", token0.decimals);
@@ -34,7 +34,7 @@ const getPriceFromDexPool = async (tokenA: string, tokenB: string) => {
 
 	if (amount0.isZero() || amount1.isZero()) return {
 		rate: FN.ZERO,
-		amount: BigInt(0)
+		amount: BigInt(1)
 	};
 
 	return {

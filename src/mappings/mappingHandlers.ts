@@ -1,11 +1,9 @@
 import { SubstrateEvent } from "@subql/types";
 import { addLiquidity, addProvision, listProvision, removeLiquidity, swap } from "../handlers";
-import { createPool, createProvisionToEnableHistory, provisionToEnable } from "../handlers";
+import { provisionToEnable } from "../handlers";
 
 export const handleProvisioningToEnabled = async (event: SubstrateEvent) => {
 	await provisionToEnable(event);
-	await createPool(event);
-	await createProvisionToEnableHistory(event);
 };
 
 export const handleAddLiquidity = async (event: SubstrateEvent) => {

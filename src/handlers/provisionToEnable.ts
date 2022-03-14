@@ -23,6 +23,8 @@ export const provisionToEnable = async (event: SubstrateEvent) => {
 	pool.endAt = blockData.timestamp;
 
 	await pool.save();
+	await createPool(event);
+	await createProvisionToEnableHistory(event);
 };
 
 export const createPool = async (event: SubstrateEvent) => {
@@ -35,6 +37,9 @@ export const createPool = async (event: SubstrateEvent) => {
 
 	const token0 = await getToken(token0Id);
 	const token1 = await getToken(token1Id);
+
+	token0.poolCount = token0.poolCount + 1;
+	token1.poolCount = token1.poolCount + 1;
 
 	const token0Amount = BigInt(_token0Amount.toString());
 	const token1Amount = BigInt(_token1Amount.toString());
@@ -53,6 +58,8 @@ export const createPool = async (event: SubstrateEvent) => {
 	pool.token1TVL = token1Value;
 	pool.totalTVL = token0Value + token1Value;
 
+	await token0.save();
+	await token1.save();
 	await pool.save();
 	await createHourPool(event, token0Amount, token1Amount, price0, price1, token0.decimals, token1.decimals);
 	await createDailyPool(event, token0Amount, token1Amount, price0, price1, token0.decimals, token1.decimals);

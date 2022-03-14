@@ -1,4 +1,3 @@
-import { FixedPointNumber as FN } from "@acala-network/sdk-core";
 import { AccountId, Balance, CurrencyId } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
@@ -11,7 +10,7 @@ export const addProvision = async (event: SubstrateEvent) => {
 	const [account, _token0, _token0Amount, _token1, _token1Amount] = event.event.data as unknown as [AccountId, CurrencyId, Balance, CurrencyId, Balance];
 	const [poolId, token0Name, token1Name] = getPoolId(_token0, _token1);
 	const blockData = await ensureBlock(event);
-	const {address} = await getAccount(account.toString());
+	const { address } = await getAccount(account.toString());
 	const hourTime = getStartOfHour(blockData.timestamp);
 	const dailyTime = getStartOfDay(blockData.timestamp);
 
@@ -100,7 +99,7 @@ export const addUserProvision = async (account: string, poolId: string, token0Am
 
 export const createAddProvisionHistory = async (event: SubstrateEvent, addressId: string, poolId: string, token0: string, token1: string, token0Amount: bigint, token1Amount: bigint) => {
 	const blockData = await ensureBlock(event);
-	
+
 	const historyId = `${blockData.hash}-${event.event.index.toString()}`;
 	const history = await getAddProvision(historyId);
 	history.addressId = addressId;

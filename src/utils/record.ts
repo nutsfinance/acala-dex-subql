@@ -1,4 +1,4 @@
-import { createDexShareName, CurrencyObject, getCurrencyObject } from "@acala-network/sdk-core";
+import { createDexShareName, CurrencyObject, FixedPointNumber, getCurrencyObject } from "@acala-network/sdk-core";
 import { getTokenDecimals } from "@acala-network/subql-utils";
 import { Position } from "@acala-network/types/interfaces";
 import {
@@ -51,23 +51,23 @@ export const getBlock = async (id: string) => {
 };
 
 export const getToken = async (token: string) => {
-	const _collateral = await Token.get(token);
-	if (!_collateral) {
+	const _reacord = await Token.get(token);
+	if (!_reacord) {
 		const decimals = await getTokenDecimals(api as any, token);
-		const newCollateral = new Token(token);
-		newCollateral.decimals = Number(decimals.toString());
-		newCollateral.name = token;
-		newCollateral.amount = BigInt(0);
-		newCollateral.tvl = BigInt(0);
-		newCollateral.tradeVolume = BigInt(0);
-		newCollateral.tradeVolumeUSD = BigInt(0);
-		newCollateral.txCount = BigInt(0);
-		newCollateral.poolCount = 0;
-		newCollateral.price = BigInt(0);
-		await newCollateral.save();
-		return newCollateral;
+		const newReacord = new Token(token);
+		newReacord.decimals = Number(decimals.toString());
+		newReacord.name = token;
+		newReacord.amount = BigInt(0);
+		newReacord.tvl = BigInt(0);
+		newReacord.tradeVolume = BigInt(0);
+		newReacord.tradeVolumeUSD = BigInt(0);
+		newReacord.txCount = BigInt(0);
+		newReacord.poolCount = 0;
+		newReacord.price = BigInt(0);
+		await newReacord.save();
+		return newReacord;
 	} else {
-		return _collateral;
+		return _reacord;
 	}
 };
 
@@ -224,24 +224,15 @@ export const getPool = async (token0: string, token1: string, poolId?: string) =
 
 	if (!record) {
 		const newRecord = new Pool(id);
-		let position: Position;
-		let feeRate = 0;
-
-		try {
-			const currencyObject0: CurrencyObject = token0 === "lc://13" ? { LiquidCroadloan: 13 } : getCurrencyObject(token0);
-			const currencyObject1: CurrencyObject = token1 === "lc://13" ? { LiquidCroadloan: 13 } : getCurrencyObject(token1);
-			position = await api.query.dex.liquidityPool([currencyObject0, currencyObject1]) as unknown as Position;
-		} catch (error) {
-			
-		}
+		const feeData = api.consts.dex.getExchangeFee;
 
 		newRecord.token0Id = token0;
 		newRecord.token1Id = token1;
-		newRecord.token0Amount = BigInt(position[0]?.toString() || "0");
-		newRecord.token1Amount = BigInt(position[1]?.toString() || "0");
+		newRecord.token0Amount = BigInt("0");
+		newRecord.token1Amount = BigInt("0");
 		newRecord.token0Price = BigInt(0);
 		newRecord.token1Price = BigInt(0);
-		newRecord.feeVolume = BigInt("3000000000000000");
+		newRecord.feeVolume = BigInt(new FixedPointNumber(feeData[0]/feeData[1], 18).toChainData());
 		newRecord.feeToken0Amount = BigInt(0);
 		newRecord.feeToken1Amount = BigInt(0);
 		newRecord.token0TradeVolume = BigInt(0);
