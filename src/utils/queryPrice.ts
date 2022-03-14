@@ -5,7 +5,7 @@ const getOtherPrice = async (token: string, stakingCurrency: string, StableCurre
 	const {rate: rateA, amount: _amountA} = await getPriceFromDexPool(token, stakingCurrency);
 	const {rate: rateB, amount: _amountB} = await getPriceFromDexPool(token,StableCurrency);
 
-	if(rateA.isZero() || rateB.isZero()) return FN.ZERO;
+	if(rateA.isZero() && rateB.isZero()) return FN.ZERO;
 
 	const amountA = FN.fromInner(_amountA.toString(), 18);
 	const amountB = FN.fromInner(_amountB.toString(), 18);
