@@ -31,6 +31,7 @@ export const createPool = async (event: SubstrateEvent) => {
 	// [trading_pair, pool_0_amount, pool_1_amount, total_share_amount\]
 	const [tradingPair, _token0Amount, _token1Amount, _] = event.event.data as unknown as [TradingPair, Balance, Balance, Balance];
 	const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
+	const pool = await getPool(token0Id, token1Id, poolId);
 
 	const price0 = await queryPrice(token0Id);
 	const price1 = await queryPrice(token1Id);
@@ -38,16 +39,16 @@ export const createPool = async (event: SubstrateEvent) => {
 	const token0 = await getToken(token0Id);
 	const token1 = await getToken(token1Id);
 
-	token0.poolCount = token0.poolCount + 1;
-	token1.poolCount = token1.poolCount + 1;
-
 	const token0Amount = BigInt(_token0Amount.toString());
 	const token1Amount = BigInt(_token1Amount.toString());
-
 	const token0Value = BigInt(price0.times(FN.fromInner(token0Amount.toString(), token0.decimals)).toChainData());
 	const token1Value = BigInt(price1.times(FN.fromInner(token1Amount.toString(), token1.decimals)).toChainData());
 
-	const pool = await getPool(token0Id, token1Id, poolId);
+	token0.poolCount = token0.poolCount + 1;
+	token0.amount = token0Amount;
+	token1.poolCount = token1.poolCount + 1;
+	token1.amount = token1Amount;
+
 	pool.token0Id = token0Id;
 	pool.token1Id = token1Id;
 	pool.token0Amount = token0Amount;
@@ -133,16 +134,17 @@ export const createDailyPool = async (event: SubstrateEvent, token0Amount: bigin
 export const createDex = async (event: SubstrateEvent, totalTvl: bigint) => {
 	const dex = await getDex("dex");
 	const timestamp = event.block.timestamp;
+	const height = event.block.block.header.number.toString();
 
 	dex.poolCount = dex.poolCount + 1;
 	dex.totalTVL = dex.totalTVL + totalTvl;
 
 	await dex.save();
-	await createHourDex(dex.poolCount, dex.totalTVL, timestamp, event.block.block.header.number.toString());
-	await createDailyDex(dex.poolCount, dex.totalTVL, timestamp, event.block.block.header.number.toString());
+	await createHourDex(dex.poolCount, dex.totalTVL, timestamp, height);
+	await createDailyDex(dex.poolCount, dex.totalTVL, timestamp, height);
 };
 
-export const createHourDex = async (count: number, totalTvl: bigint, timestamp: Date, number: string) => {
+export const createHourDex = async (count: number, totalTvl: bigint, timestamp: Date, height: string) => {
 	const hourTime = getStartOfHour(timestamp);
 	const hourDexId = `${hourTime.getTime()}`;
 	const dex = await getHourDex(hourDexId);
@@ -150,19 +152,19 @@ export const createHourDex = async (count: number, totalTvl: bigint, timestamp: 
 	dex.poolCount = count;
 	dex.totalTVL = totalTvl;
 	dex.timestamp = hourTime;
-	dex.updateAtBlockId = number;
+	dex.updateAtBlockId = height;
 
 	await dex.save();
 };
 
-export const createDailyDex = async (count: number, totalTvl: bigint, timestamp: Date, number: string) => {
+export const createDailyDex = async (count: number, totalTvl: bigint, timestamp: Date, height: string) => {
 	const dailyTime = getStartOfDay(timestamp);
 	const dex = await getDailyDex(dailyTime.getTime().toString());
 
 	dex.poolCount = count;
 	dex.totalTVL = totalTvl;
 	dex.timestamp = dailyTime;
-	dex.updateAtBlockId = number;
+	dex.updateAtBlockId = height;
 
 	await dex.save();
 };

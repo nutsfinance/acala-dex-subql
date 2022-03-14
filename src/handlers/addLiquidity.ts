@@ -29,6 +29,8 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 
 	const token0ChangedUSD = oldPrice0.times(FN.fromInner(token0Increment, token0.decimals));
 	const token1ChangedUSD = oldPrice1.times(FN.fromInner(token1Increment, token1.decimals));
+	token0ChangedUSD.setPrecision(18);
+	token1ChangedUSD.setPrecision(18);
 
 	pool.token0Amount = pool.token0Amount + BigInt(token0Increment);
 	pool.token1Amount = pool.token1Amount + BigInt(token1Increment);
@@ -57,8 +59,8 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	hourPool.token1Id = token1Name;
 	hourPool.token0Amount = newPool.token0Amount;
 	hourPool.token1Amount = newPool.token1Amount;
-	hourPool.token0Price = BigInt(oldPrice0.toChainData())
-	hourPool.token1Price = BigInt(oldPrice1.toChainData())
+	hourPool.token0Price = BigInt(newPrice0.toChainData())
+	hourPool.token1Price = BigInt(newPrice1.toChainData())
 	hourPool.hourlyToken0TradeVolume = hourPool.hourlyToken0TradeVolume + BigInt(token0Increment);
 	hourPool.hourlyToken1TradeVolume = hourPool.hourlyToken1TradeVolume + BigInt(token1Increment);
 	hourPool.hourlyTradeVolumeUSD = hourPool.hourlyTradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
@@ -69,9 +71,9 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	hourPool.txCount = hourPool.txCount + BigInt(1);
 	hourPool.token0High = hourPool.token0High > BigInt(newPrice0.toChainData()) ? hourPool.token0High : BigInt(newPrice0.toChainData());
 	hourPool.token0Low = hourPool.token0Low < BigInt(newPrice0.toChainData()) ? hourPool.token0Low : BigInt(newPrice0.toChainData());
+	hourPool.token0Close = BigInt(newPrice0.toChainData());
 	hourPool.token1High = hourPool.token1High > BigInt(newPrice1.toChainData()) ? hourPool.token1High : BigInt(newPrice1.toChainData());
 	hourPool.token1Low = hourPool.token1Low < BigInt(newPrice1.toChainData()) ? hourPool.token1Low : BigInt(newPrice1.toChainData());
-	hourPool.token0Close = BigInt(newPrice0.toChainData());
 	hourPool.token1Close = BigInt(newPrice1.toChainData());
 	hourPool.updateAtBlockId = blockData.id;
 	await hourPool.save();
@@ -84,8 +86,8 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	dailyPool.token1Id = token1Name;
 	dailyPool.token0Amount = newPool.token0Amount;
 	dailyPool.token1Amount = newPool.token1Amount;
-	dailyPool.token0Price = BigInt(oldPrice0.toChainData())
-	dailyPool.token1Price = BigInt(oldPrice1.toChainData())
+	dailyPool.token0Price = BigInt(newPrice0.toChainData())
+	dailyPool.token1Price = BigInt(newPrice1.toChainData())
 	dailyPool.dailyToken0TradeVolume = dailyPool.dailyToken0TradeVolume + BigInt(token0Increment);
 	dailyPool.dailyToken1TradeVolume = dailyPool.dailyToken1TradeVolume + BigInt(token1Increment);
 	dailyPool.dailyTradeVolumeUSD = dailyPool.dailyTradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
@@ -96,9 +98,9 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	dailyPool.txCount = dailyPool.txCount + BigInt(1);
 	dailyPool.token0High = dailyPool.token0High > BigInt(newPrice0.toChainData()) ? dailyPool.token0High : BigInt(newPrice0.toChainData());
 	dailyPool.token0Low = dailyPool.token0Low < BigInt(newPrice0.toChainData()) ? dailyPool.token0Low : BigInt(newPrice0.toChainData());
+	dailyPool.token0Close = BigInt(newPrice0.toChainData());
 	dailyPool.token1High = dailyPool.token1High > BigInt(newPrice1.toChainData()) ? dailyPool.token1High : BigInt(newPrice1.toChainData());
 	dailyPool.token1Low = dailyPool.token1Low < BigInt(newPrice1.toChainData()) ? dailyPool.token1Low : BigInt(newPrice1.toChainData());
-	dailyPool.token0Close = BigInt(newPrice0.toChainData());
 	dailyPool.token1Close = BigInt(newPrice1.toChainData());
 	dailyPool.updateAtBlockId = blockData.id;
 	await dailyPool.save();

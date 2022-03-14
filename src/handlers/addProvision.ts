@@ -22,54 +22,10 @@ export const addProvision = async (event: SubstrateEvent) => {
 	provisionPool.token1Amount = provisionPool.token1Amount + token1Amount;
 	provisionPool.txCount = provisionPool.txCount + BigInt(1);
 
-	const { token0, token1 } = await updateToken(poolId, token0Name, token1Name, token0Amount, token1Amount);
-	await updateDailyToken(blockData.id, dailyTime, poolId, token0, token1, token0Amount, token1Amount);
 	await provisionPool.save();
 	await addHourProvisionPool(blockData.id, hourTime, poolId, token0Name, token1Name, token0Amount, token1Amount);
 	await addUserProvision(address, poolId, token0Amount, token1Amount);
 	await createAddProvisionHistory(event, address, poolId, token0Name, token1Name, token0Amount, token1Amount);
-};
-
-export const updateToken = async (poolId: string, token0Name: string, token1Name: string, token0Amount: bigint, token1Amount: bigint) => {
-	const token0 = await getToken(token0Name);
-	const token1 = await getToken(token1Name);
-	await getToken(poolId);
-
-	token0.txCount = token0.txCount + BigInt(1);
-	token1.txCount = token1.txCount + BigInt(1);
-
-	token0.amount = token0.amount + token0Amount;
-	token1.amount = token1.amount + token1Amount;
-
-	await token0.save();
-	await token1.save();
-
-	return {
-		token0, token1
-	};
-};
-
-export const updateDailyToken = async (number: string, dailyTime: Date, poolId: string, token0: Token, token1: Token, token0Amount: bigint, token1Amount: bigint) => {
-	const dailyToken0 = await getTokenDailyData(`${token0.name}-${dailyTime.getTime()}`);
-	const dailyToken1 = await getTokenDailyData(`${token1.name}-${dailyTime.getTime()}`);
-
-	dailyToken0.tokenId = token0.name;
-	dailyToken1.tokenId = token1.name;
-
-	dailyToken0.dailyTxCount = dailyToken0.dailyTxCount + BigInt(1);
-	dailyToken1.dailyTxCount = dailyToken1.dailyTxCount + BigInt(1);
-
-	dailyToken0.amount = dailyToken0.amount + token0Amount;
-	dailyToken1.amount = dailyToken1.amount + token1Amount;
-
-	dailyToken0.updateAtBlockId = number;
-	dailyToken1.updateAtBlockId = number;
-
-	dailyToken0.timestamp = dailyTime
-	dailyToken1.timestamp = dailyTime
-
-	await dailyToken0.save();
-	await dailyToken1.save();
 };
 
 export const addHourProvisionPool = async (number: string, hourTime: Date, poolId: string, token0: string, token1: string, token0Amount: bigint, token1Amount: bigint) => {
