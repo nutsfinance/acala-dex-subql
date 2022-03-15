@@ -22,7 +22,7 @@ const getPriceFromDexPool = async (tokenA: string, tokenB: string) => {
 	const [_t0, _t1] = Token.sortTokenNames(tokenA, tokenB);
 	const token0 = await getToken(_t0);
 	const token1 = await getToken(_t1);
-	const pool = await getPool(tokenA, tokenB);
+	const pool = await getPool(token0.name, token1.name);
 
 	if (!pool || pool.txCount == BigInt(0)) return {
 		rate: FN.ZERO,
