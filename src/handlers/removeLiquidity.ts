@@ -98,6 +98,7 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	dailyPool.token1TradeVolume = BigInt(token1Decrement);
 	dailyPool.token0TVL = newPool.token0TVL;
 	dailyPool.token1TVL = newPool.token1TVL;
+	dailyPool.totalTVL = dailyPool.token0TVL + dailyPool.token1TVL;
 	dailyPool.txCount = dailyPool.txCount + BigInt(1);
 	dailyPool.token0High = dailyPool.token0High > BigInt(oldPrice0.toChainData()) ? dailyPool.token0High : BigInt(oldPrice0.toChainData());
 	dailyPool.token0Low = dailyPool.token0Low < BigInt(oldPrice0.toChainData()) ? dailyPool.token0Low : BigInt(oldPrice0.toChainData());

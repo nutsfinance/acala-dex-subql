@@ -95,6 +95,7 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	dailyPool.token1TradeVolume = BigInt(token1Increment);
 	dailyPool.token0TVL = newPool.token0TVL;
 	dailyPool.token1TVL = newPool.token1TVL;
+	dailyPool.totalTVL = dailyPool.token0TVL + dailyPool.token1TVL;
 	dailyPool.txCount = dailyPool.txCount + BigInt(1);
 	dailyPool.token0High = dailyPool.token0High > BigInt(newPrice0.toChainData()) ? dailyPool.token0High : BigInt(newPrice0.toChainData());
 	dailyPool.token0Low = dailyPool.token0Low < BigInt(newPrice0.toChainData()) ? dailyPool.token0Low : BigInt(newPrice0.toChainData());
