@@ -389,4 +389,13 @@ type Swap @entity {
 
   token0: Token
   token1: Token
+  token0InAmount: BigInt
+  token1OutAmount: BigInt
+  tradePath: [Token]
+  price0: BigInt
+  price1: BigInt
+
+  block: Block
+  extrinsic: Extrinsic
+  timestamp: Date
 }

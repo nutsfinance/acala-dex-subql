@@ -24,6 +24,22 @@ export class Swap implements Entity {
 
     public token1Id?: string;
 
+    public token0InAmount?: bigint;
+
+    public token1OutAmount?: bigint;
+
+    public tradePathId?: string[];
+
+    public price0?: bigint;
+
+    public price1?: bigint;
+
+    public blockId?: string;
+
+    public extrinsicId?: string;
+
+    public timestamp?: Date;
+
 
     async save(): Promise<void>{
         let id = this.id;
@@ -70,6 +86,27 @@ export class Swap implements Entity {
     static async getByToken1Id(token1Id: string): Promise<Swap[] | undefined>{
       
       const records = await store.getByField('Swap', 'token1Id', token1Id);
+      return records.map(record => Swap.create(record as SwapProps));
+      
+    }
+
+    static async getByTradePathId(tradePathId: string): Promise<Swap[] | undefined>{
+      
+      const records = await store.getByField('Swap', 'tradePathId', tradePathId);
+      return records.map(record => Swap.create(record as SwapProps));
+      
+    }
+
+    static async getByBlockId(blockId: string): Promise<Swap[] | undefined>{
+      
+      const records = await store.getByField('Swap', 'blockId', blockId);
+      return records.map(record => Swap.create(record as SwapProps));
+      
+    }
+
+    static async getByExtrinsicId(extrinsicId: string): Promise<Swap[] | undefined>{
+      
+      const records = await store.getByField('Swap', 'extrinsicId', extrinsicId);
       return records.map(record => Swap.create(record as SwapProps));
       
     }

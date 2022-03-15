@@ -2,10 +2,10 @@ import { FixedPointNumber as FN, forceToCurrencyName, MaybeCurrency, Token } fro
 import { getPool, getToken } from ".";
 
 const getOtherPrice = async (token: string, stakingCurrency: string, StableCurrency: string) => {
-	const {rate: rateA, amount: _amountA} = await getPriceFromDexPool(token, stakingCurrency);
-	const {rate: rateB, amount: _amountB} = await getPriceFromDexPool(token,StableCurrency);
+	const { rate: rateA, amount: _amountA } = await getPriceFromDexPool(token, stakingCurrency);
+	const { rate: rateB, amount: _amountB } = await getPriceFromDexPool(token, StableCurrency);
 
-	if(rateA.isZero() && rateB.isZero()) return FN.ZERO;
+	if (rateA.isZero() && rateB.isZero()) return FN.ZERO;
 
 	const amountA = FN.fromInner(_amountA.toString(), 18);
 	const amountB = FN.fromInner(_amountB.toString(), 18);
@@ -43,7 +43,7 @@ const getPriceFromDexPool = async (tokenA: string, tokenB: string) => {
 	}
 }
 
-const	getStableCurrencyPrice = () => {
+const getStableCurrencyPrice = () => {
 	return new FN(1, 18);
 }
 
@@ -62,7 +62,7 @@ export const circulatePrice = async (name: MaybeCurrency) => {
 
 	if (_name === "KUSD" || _name === "AUSD") return getStableCurrencyPrice();
 
-	else if(_name === 'KSM' || _name === 'DOT') return getStakingCurrencyPrice(stakingCurrencyName, StableCurrencyName);
+	else if (_name === 'KSM' || _name === 'DOT') return getStakingCurrencyPrice(stakingCurrencyName, StableCurrencyName);
 
 	else return getOtherPrice(_name, stakingCurrencyName, StableCurrencyName);
 }

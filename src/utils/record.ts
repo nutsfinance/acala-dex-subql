@@ -440,6 +440,11 @@ export const getSwap = async (id: string) => {
 		newRecord.poolId = "";
 		newRecord.token0Id = "";
 		newRecord.token1Id = "";
+		newRecord.token0InAmount = BigInt('');
+		newRecord.token1OutAmount = BigInt('');
+		newRecord.tradePathId = [];
+		newRecord.blockId = "";
+		newRecord.timestamp = new Date();
 		return newRecord;
 	} else {
 		return record;

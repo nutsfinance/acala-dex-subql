@@ -399,6 +399,28 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 };
 
 const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: string, token0Name: string, token1Name: string) => {
+	let who: AccountId;
+	let supplyAmount: Balance
+	let targetAmount: Balance
+	let tradingPath: CurrencyId[];
+	if (event.event.data.length === 3) {
+		const [_who, _tradingPath, resultPath] = event.event
+			.data as unknown as [AccountId, CurrencyId[], Balance[]]
+
+			who = _who
+			supplyAmount = resultPath[0]
+			targetAmount = resultPath[resultPath.length - 1]
+			tradingPath = _tradingPath
+	} else {
+		const [_who, _tradingPath, _supplyAmount, _targetAmount] = event.event
+			.data as unknown as [AccountId, CurrencyId[], Balance, Balance]
+
+			who = _who
+			supplyAmount = _supplyAmount
+			targetAmount = _targetAmount
+			tradingPath = _tradingPath
+	}
+
 	const blockData = await ensureBlock(event);
 	await getAccount(owner);
 
@@ -409,9 +431,15 @@ const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: s
 	history.poolId = poolId;
 	history.token0Id = token0Name;
 	history.token1Id = token1Name;
+	history.token0InAmount = BigInt(supplyAmount.toString());
+	history.token1OutAmount = BigInt(targetAmount.toString());
+	history.tradePathId = tradingPath.map(token => forceToCurrencyName(token));
+	history.timestamp = blockData.timestamp;
+	history.blockId = blockData.id;
 
 	if (event.extrinsic) {
 		const extrinsicData = await ensureExtrinsic(event);
+		history.extrinsicId = extrinsicData.id;
 		await getAccount(event.extrinsic.extrinsic.signer.toString());
 
 		extrinsicData.section = event.event.section;
