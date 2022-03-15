@@ -433,7 +433,7 @@ const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: s
 	history.token1Id = token1Name;
 	history.token0InAmount = BigInt(supplyAmount.toString());
 	history.token1OutAmount = BigInt(targetAmount.toString());
-	history.tradePathId = tradingPath.map(token => forceToCurrencyName(token));
+	history.tradePath = tradingPath.map(token => forceToCurrencyName(token)).join(',');
 	history.timestamp = blockData.timestamp;
 	history.blockId = blockData.id;
 

@@ -391,7 +391,7 @@ type Swap @entity {
   token1: Token
   token0InAmount: BigInt
   token1OutAmount: BigInt
-  tradePath: [Token]
+  tradePath: String
   price0: BigInt
   price1: BigInt
 

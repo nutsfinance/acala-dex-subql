@@ -28,7 +28,7 @@ export class Swap implements Entity {
 
     public token1OutAmount?: bigint;
 
-    public tradePathId?: string[];
+    public tradePath?: string;
 
     public price0?: bigint;
 
@@ -86,13 +86,6 @@ export class Swap implements Entity {
     static async getByToken1Id(token1Id: string): Promise<Swap[] | undefined>{
       
       const records = await store.getByField('Swap', 'token1Id', token1Id);
-      return records.map(record => Swap.create(record as SwapProps));
-      
-    }
-
-    static async getByTradePathId(tradePathId: string): Promise<Swap[] | undefined>{
-      
-      const records = await store.getByField('Swap', 'tradePathId', tradePathId);
       return records.map(record => Swap.create(record as SwapProps));
       
     }
