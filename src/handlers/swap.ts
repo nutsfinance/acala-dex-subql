@@ -210,7 +210,7 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		await dailyToken0.save();
 		await dailyToken1.save();
 
-		await createSwapHistory(event, owner.toString(), poolId, token0Name, token1Name);
+		await createSwapHistory(event, owner.toString(), poolId, token0Name, token1Name, oldPrice0, oldPrice1);
 	}
 };
 
@@ -394,11 +394,11 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		await dailyToken0.save();
 		await dailyToken1.save();
 
-		await createSwapHistory(event, who.toString(), poolId, token0Name, token1Name);
+		await createSwapHistory(event, who.toString(), poolId, token0Name, token1Name, oldPrice0, oldPrice1);
 	}
 };
 
-const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: string, token0Name: string, token1Name: string) => {
+const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: string, token0Name: string, token1Name: string, price0: FN, price1: FN) => {
 	let who: AccountId;
 	let supplyAmount: Balance
 	let targetAmount: Balance
@@ -434,6 +434,8 @@ const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: s
 	history.token0InAmount = BigInt(supplyAmount.toString());
 	history.token1OutAmount = BigInt(targetAmount.toString());
 	history.tradePath = tradingPath.map(token => forceToCurrencyName(token)).join(',');
+	history.price0 = BigInt(price0.toChainData())
+	history.price1 = BigInt(price1.toChainData())
 	history.timestamp = blockData.timestamp;
 	history.blockId = blockData.id;
 
