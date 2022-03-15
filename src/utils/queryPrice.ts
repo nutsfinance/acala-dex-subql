@@ -9,7 +9,7 @@ const getOtherPrice = async (token: string, stakingCurrency: string, StableCurre
 
 	const amountA = FN.fromInner(_amountA.toString(), 18);
 	const amountB = FN.fromInner(_amountB.toString(), 18);
-	const StakingPrice = await getStakingCurrencyPrice(stakingCurrency, stakingCurrency);
+	const StakingPrice = await getStakingCurrencyPrice(stakingCurrency, StableCurrency);
 	const StablePrice = await getStableCurrencyPrice();
 
 	const partA = rateA.mul(StakingPrice).times(amountA).div(amountA.add(amountB));
