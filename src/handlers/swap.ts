@@ -49,8 +49,9 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 
 			const _supplyAmount = i === 0 ? BigInt(supplyAmount.toString()) : nextSupplyAmount;
 
-			const targetAmount = targetPool - (supplyPool * targetPool / (supplyPool + _supplyAmount * (BigInt(1) - BigInt(FN.fromInner(pool.feeVolume.toString() ,18).toString()))));
+			const supplyDecimals = pool.token0Id === supplyTokenName ? token0.decimals : token1.decimals;
 
+			const targetAmount = targetPool - (supplyPool * targetPool / (supplyPool + BigInt(FN.fromInner(_supplyAmount.toString(), supplyDecimals).times(FN.ONE.sub(FN.fromInner(pool.feeVolume.toString(), 18))).toChainData())));
 			// update next supply amount
 			nextSupplyAmount = targetAmount;
 
