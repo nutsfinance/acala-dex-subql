@@ -40,8 +40,8 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		let token1Amount = BigInt(0);
 
 		if (tradingPath.length === 2) {
-			token0Amount = token0Name === supplyTokenName ? BigInt(0) : - BigInt(targetAmount.toString());
-			token1Amount = token1Name === supplyTokenName ? BigInt(0) : - BigInt(targetAmount.toString());
+			token0Amount = token0Name === supplyTokenName ? BigInt(supplyAmount.toString()) : - BigInt(targetAmount.toString());
+			token1Amount = token1Name === supplyTokenName ? BigInt(supplyAmount.toString()) : - BigInt(targetAmount.toString());
 		} else {
 			// calculate
 			const supplyPool = token0Name === supplyTokenName ? BigInt(pool.token0Amount.toString()) : BigInt(pool.token1Amount.toString());
@@ -49,7 +49,7 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 
 			const _supplyAmount = i === 0 ? BigInt(supplyAmount.toString()) : nextSupplyAmount;
 
-			const targetAmount = targetPool - (supplyPool * targetPool / (supplyPool + _supplyAmount * (BigInt(1) - BigInt(pool.feeToken0Amount))));
+			const targetAmount = targetPool - (supplyPool * targetPool / (supplyPool + _supplyAmount * (BigInt(1) - BigInt(FN.fromInner(pool.feeVolume.toString() ,18).toString()))));
 
 			// update next supply amount
 			nextSupplyAmount = targetAmount;
