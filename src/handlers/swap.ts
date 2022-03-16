@@ -16,7 +16,7 @@ export const swap = async (event: SubstrateEvent) => {
 
 const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 	const [owner, tradingPath, supplyAmount, targetAmount] = event.event.data as unknown as [AccountId, CurrencyId[], Balance, Balance];
-	let nextSupplyAmount = FN.ZERO;
+	let nextSupplyAmount = BigInt(0);
 	const blockData = await ensureBlock(event);
 	const hourTime = getStartOfHour(blockData.timestamp);
 	const dailyTime = getStartOfDay(blockData.timestamp);
@@ -36,32 +36,32 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		const dailyToken1 = await getTokenDailyData(`${token1Name}-${dailyTime.getTime()}`);
 		const pool = await getPool(token0Name, token1Name, poolId);
 
-		let token0Amount = "0";
-		let token1Amount = "0";
+		let token0Amount = BigInt(0);
+		let token1Amount = BigInt(0);
 
 		if (tradingPath.length === 2) {
-			token0Amount = token0Name === supplyTokenName ? supplyAmount.toString() : "-" + targetAmount.toString();
-			token1Amount = token1Name === supplyTokenName ? supplyAmount.toString() : "-" + targetAmount.toString();
+			token0Amount = token0Name === supplyTokenName ? BigInt(0) : - BigInt(targetAmount.toString());
+			token1Amount = token1Name === supplyTokenName ? BigInt(0) : - BigInt(targetAmount.toString());
 		} else {
 			// calculate
-			const supplyPool = FN.fromInner(token0Name === supplyTokenName ? pool.token0Amount.toString() : pool.token1Amount.toString());
-			const targetPool = FN.fromInner(token0Name === targetTokenName ? pool.token0Amount.toString() : pool.token1Amount.toString());
+			const supplyPool = token0Name === supplyTokenName ? BigInt(pool.token0Amount.toString()) : BigInt(pool.token1Amount.toString());
+			const targetPool = token0Name === targetTokenName ? BigInt(pool.token0Amount.toString()) : BigInt(pool.token1Amount.toString());
 
-			const _supplyAmount = i === 0 ? FN.fromInner(supplyAmount.toString()) : nextSupplyAmount;
+			const _supplyAmount = i === 0 ? BigInt(supplyAmount.toString()) : nextSupplyAmount;
 
-			const targetAmount = targetPool.minus(supplyPool.times(targetPool).div(supplyPool.add((_supplyAmount.times(FN.ONE.minus(FN.fromInner(pool.feeToken0Amount.toString(), 18)))))));
+			const targetAmount = targetPool - (supplyPool * targetPool / (supplyPool + _supplyAmount * (BigInt(1) - BigInt(pool.feeToken0Amount))));
 
 			// update next supply amount
 			nextSupplyAmount = targetAmount;
 
-			token0Amount = pool.token0Id === supplyTokenName ? _supplyAmount.toChainData() : (FN.ZERO.mul(targetAmount)).toChainData();
-			token1Amount = pool.token1Id === supplyTokenName ? _supplyAmount.toChainData() : (FN.ZERO.mul(targetAmount)).toChainData();
+			token0Amount = pool.token0Id === supplyTokenName ? _supplyAmount : -targetAmount;
+			token1Amount = pool.token1Id === supplyTokenName ? _supplyAmount : -targetAmount;
 		}
 		const oldPrice0 = await queryPrice(token0Name);
 		const oldPrice1 = await queryPrice(token1Name);
 
 		const token0AmountAbs = BigInt(token0Amount) > 0 ? BigInt(token0Amount) : -BigInt(token0Amount);
-		const token1AmountAbs = BigInt(token1Amount) > 1 ? BigInt(token1Amount) : -BigInt(token1Amount);
+		const token1AmountAbs = BigInt(token1Amount) > 0 ? BigInt(token1Amount) : -BigInt(token1Amount);
 		const token0ChangedUSD = oldPrice0.times(FN.fromInner(token0AmountAbs.toString(), token0.decimals))
 		const token1ChangedUSD = oldPrice1.times(FN.fromInner(token1AmountAbs.toString(), token1.decimals))
 		token0ChangedUSD.setPrecision(18)
@@ -407,18 +407,18 @@ const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: s
 		const [_who, _tradingPath, resultPath] = event.event
 			.data as unknown as [AccountId, CurrencyId[], Balance[]]
 
-			who = _who
-			supplyAmount = resultPath[0]
-			targetAmount = resultPath[resultPath.length - 1]
-			tradingPath = _tradingPath
+		who = _who
+		supplyAmount = resultPath[0]
+		targetAmount = resultPath[resultPath.length - 1]
+		tradingPath = _tradingPath
 	} else {
 		const [_who, _tradingPath, _supplyAmount, _targetAmount] = event.event
 			.data as unknown as [AccountId, CurrencyId[], Balance, Balance]
 
-			who = _who
-			supplyAmount = _supplyAmount
-			targetAmount = _targetAmount
-			tradingPath = _tradingPath
+		who = _who
+		supplyAmount = _supplyAmount
+		targetAmount = _targetAmount
+		tradingPath = _tradingPath
 	}
 
 	const blockData = await ensureBlock(event);

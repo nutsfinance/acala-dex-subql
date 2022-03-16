@@ -244,6 +244,7 @@ export const getPool = async (token0: string, token1: string, poolId?: string) =
 		newRecord.txCount = BigInt(0);
 		return newRecord;
 	} else {
+		logger.info(`${record.id}-${record.token0Amount}-${record.token1Amount}`)
 		return record;
 	}
 };
