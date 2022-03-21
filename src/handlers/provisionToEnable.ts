@@ -45,9 +45,9 @@ export const createPool = async (event: SubstrateEvent) => {
 	const token1Value = BigInt(price1.times(FN.fromInner(token1Amount.toString(), token1.decimals)).toChainData());
 
 	token0.poolCount = token0.poolCount + 1;
-	token0.amount = token0Amount;
+	token0.amount = token0.amount + token0Amount;
 	token1.poolCount = token1.poolCount + 1;
-	token1.amount = token1Amount;
+	token1.amount = token1.amount + token1Amount;
 
 	pool.token0Id = token0Id;
 	pool.token1Id = token1Id;
