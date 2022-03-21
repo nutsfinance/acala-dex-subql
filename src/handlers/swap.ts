@@ -12,6 +12,7 @@ export const swap = async (event: SubstrateEvent) => {
 	} else {
 		await swapByRuntimeLt1008(event);
 	}
+	await createSwapHistory(event);
 };
 
 const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
@@ -210,8 +211,6 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		await token1.save();
 		await dailyToken0.save();
 		await dailyToken1.save();
-
-		await createSwapHistory(event, owner.toString(), poolId, token0Name, token1Name, oldPrice0, oldPrice1);
 	}
 };
 
@@ -394,21 +393,23 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		await token1.save();
 		await dailyToken0.save();
 		await dailyToken1.save();
-
-		await createSwapHistory(event, who.toString(), poolId, token0Name, token1Name, oldPrice0, oldPrice1);
 	}
 };
 
-const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: string, token0Name: string, token1Name: string, price0: FN, price1: FN) => {
+const createSwapHistory = async (event: SubstrateEvent) => {
 	let who: AccountId;
 	let supplyAmount: Balance
 	let targetAmount: Balance
+	let token0: CurrencyId;
+	let token1: CurrencyId;
 	let tradingPath: CurrencyId[];
 	if (event.event.data.length === 3) {
 		const [_who, _tradingPath, resultPath] = event.event
 			.data as unknown as [AccountId, CurrencyId[], Balance[]]
 
 		who = _who
+		token0 = _tradingPath[0]
+		token1 = _tradingPath[_tradingPath.length - 1]
 		supplyAmount = resultPath[0]
 		targetAmount = resultPath[resultPath.length - 1]
 		tradingPath = _tradingPath
@@ -417,21 +418,27 @@ const createSwapHistory = async (event: SubstrateEvent, owner: string, poolId: s
 			.data as unknown as [AccountId, CurrencyId[], Balance, Balance]
 
 		who = _who
+		token0 = _tradingPath[0]
+		token1 = _tradingPath[_tradingPath.length - 1]
 		supplyAmount = _supplyAmount
 		targetAmount = _targetAmount
 		tradingPath = _tradingPath
 	}
-
 	const blockData = await ensureBlock(event);
-	await getAccount(owner);
+	await getAccount(who.toString());
 
 	const historyId = `${blockData.id}-${event.event.index.toString()}`;
 	const history = await getSwap(historyId);
 
-	history.addressId = owner;
+	const [poolId] = getPoolId(token0, token1);
+
+	const price0 = await queryPrice(forceToCurrencyName(token0))
+	const price1 = await queryPrice(forceToCurrencyName(token1))
+
+	history.addressId = who.toString();
 	history.poolId = poolId;
-	history.token0Id = token0Name;
-	history.token1Id = token1Name;
+	history.token0Id = forceToCurrencyName(token0);
+	history.token1Id = forceToCurrencyName(token1);
 	history.token0InAmount = BigInt(supplyAmount.toString());
 	history.token1OutAmount = BigInt(targetAmount.toString());
 	history.tradePath = tradingPath.map(token => forceToCurrencyName(token)).join(',');
