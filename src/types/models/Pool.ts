@@ -28,7 +28,7 @@ export class Pool implements Entity {
 
     public token1Price?: bigint;
 
-    public feeVolume?: bigint;
+    public feeRate?: bigint;
 
     public feeToken0Amount?: bigint;
 

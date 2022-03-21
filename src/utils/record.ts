@@ -102,7 +102,7 @@ export const getDailyPool = async (id: string) => {
 		newRecord.token1Amount = BigInt(0);
 		newRecord.token0Price = BigInt(0);
 		newRecord.token1Price = BigInt(0);
-		newRecord.feeVolumeUSD = BigInt(0);
+		newRecord.feeRateUSD = BigInt(0);
 		newRecord.feeToken0Amount = BigInt(0);
 		newRecord.feeToken1Amount = BigInt(0);
 		newRecord.dailyToken0TradeVolume = BigInt(0);
@@ -190,7 +190,7 @@ export const getHourlyPool = async (id: string) => {
 		newRecord.token1Amount = BigInt(0);
 		newRecord.token0Price = BigInt(0);
 		newRecord.token1Price = BigInt(0);
-		newRecord.feeVolumeUSD = BigInt(0);
+		newRecord.feeRateUSD = BigInt(0);
 		newRecord.feeToken0Amount = BigInt(0);
 		newRecord.feeToken1Amount = BigInt(0);
 		newRecord.hourlyToken0TradeVolume = BigInt(0);
@@ -232,7 +232,7 @@ export const getPool = async (token0: string, token1: string, poolId?: string) =
 		newRecord.token1Amount = BigInt("0");
 		newRecord.token0Price = BigInt(0);
 		newRecord.token1Price = BigInt(0);
-		newRecord.feeVolume = BigInt(new FixedPointNumber(feeData[0]/feeData[1], 18).toChainData());
+		newRecord.feeRate = BigInt(new FixedPointNumber(feeData[0]/feeData[1], 18).toChainData());
 		newRecord.feeToken0Amount = BigInt(0);
 		newRecord.feeToken1Amount = BigInt(0);
 		newRecord.token0TradeVolume = BigInt(0);

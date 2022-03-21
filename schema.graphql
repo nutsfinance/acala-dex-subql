@@ -132,7 +132,7 @@ type Pool @entity {
   token0Price: BigInt
   token1Price: BigInt
   # total trade fee accumulate
-  feeVolume: BigInt
+  feeRate: BigInt
   feeToken0Amount: BigInt
   feeToken1Amount: BigInt
 
@@ -165,7 +165,7 @@ type HourlyPool @entity {
   token1Price: BigInt
 
   # total trade fee accumulate
-  feeVolumeUSD: BigInt
+  feeRateUSD: BigInt
   feeToken0Amount: BigInt
   feeToken1Amount: BigInt
 
@@ -215,7 +215,7 @@ type DailyPool @entity {
   token1Price: BigInt
 
   # total trade fee accumulate
-  feeVolumeUSD: BigInt
+  feeRateUSD: BigInt
   feeToken0Amount: BigInt
   feeToken1Amount: BigInt
 

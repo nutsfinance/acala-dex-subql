@@ -9,7 +9,6 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	// [who, currency_id_0, pool_0_increment, currency_id_1, pool_1_increment, share_increment\]
 	const [_, currency0, pool0Increment, currency1, pool1Increment] = event.event.data as unknown as [AccountId, CurrencyId, Balance, CurrencyId, Balance];
 	const blockData = await ensureBlock(event);
-
 	const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
 	const token0Increment = (token0Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
 	const token1Increment = (token1Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
@@ -130,13 +129,13 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	const token0Changed = BigInt(token0Increment) > 0 ? BigInt(token0Increment) : -BigInt(token0Increment)
 	const token1Changed = BigInt(token1Increment) > 0 ? BigInt(token1Increment) : -BigInt(token1Increment)
 
-	token0.amount = token0.amount + BigInt(token0Changed);
+	token0.amount = token0.amount + BigInt(token0Increment);
 	token0.tvl = BigInt(newPrice0.times(FN.fromInner(token0.amount.toString(), token0.decimals)).toChainData());
 	token0.tradeVolume = token0.tradeVolume + token0Changed;
 	token0.tradeVolumeUSD = token0.tradeVolumeUSD + BigInt(token0ChangedUSD.toChainData());
 	token0.txCount = token0.txCount + BigInt(1);
 	token0.price = BigInt(newPrice0.toChainData());
-	token1.amount = token1.amount + BigInt(token1Changed);
+	token1.amount = token1.amount + BigInt(token1Increment);
 	token1.tvl = BigInt(newPrice1.times(FN.fromInner(token1.amount.toString(), token1.decimals)).toChainData());
 	token1.tradeVolume = token1.tradeVolume + token1Changed;
 	token1.tradeVolumeUSD = token1.tradeVolumeUSD + BigInt(token1ChangedUSD.toChainData());

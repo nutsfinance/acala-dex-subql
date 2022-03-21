@@ -32,7 +32,7 @@ export class DailyPool implements Entity {
 
     public token1Price?: bigint;
 
-    public feeVolumeUSD?: bigint;
+    public feeRateUSD?: bigint;
 
     public feeToken0Amount?: bigint;
 

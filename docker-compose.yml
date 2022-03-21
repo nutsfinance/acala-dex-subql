@@ -24,6 +24,7 @@ services:
     volumes:
       - ./:/app
     command:
+      - --batch-size=1
       - --subquery=/app
       - --db-schema=acala-dex
       - --schema=acala-dex
