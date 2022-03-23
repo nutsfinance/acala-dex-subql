@@ -2,7 +2,7 @@ import { forceToCurrencyName, FixedPointNumber as FN } from "@acala-network/sdk-
 import { AccountId, Balance, CurrencyId } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
-import { getAccount, getAddLiquidity, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getStartOfDay, getStartOfHour, getToken, getTokenDailyData, queryPrice } from "../utils";
+import { getAccount, getAddLiquidity, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getRemoveLiquidity, getStartOfDay, getStartOfHour, getToken, getTokenDailyData, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
 
 export const removeLiquidity = async (event: SubstrateEvent) => {
@@ -172,7 +172,7 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 
 export const createRemoveLiquidyHistory = async (event: SubstrateEvent, price0: FN, price1: FN) => {
 	// [who, currency_id_0, pool_0_increment, currency_id_1, pool_1_increment, share_increment\]
-	const [owner, currency0, pool0Decrement, currency1, pool1Decrement] = event.event.data as unknown as [AccountId, CurrencyId, Balance, CurrencyId, Balance];
+	const [owner, currency0, pool0Decrement, currency1, pool1Decrement, shareAmount] = event.event.data as unknown as [AccountId, CurrencyId, Balance, CurrencyId, Balance, Balance];
 	const blockData = await ensureBlock(event);
 
 	const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
@@ -180,13 +180,14 @@ export const createRemoveLiquidyHistory = async (event: SubstrateEvent, price0: 
 	const token1Decrement = (token1Name === forceToCurrencyName(currency0) ? pool0Decrement : pool1Decrement).toString();
 
 	const historyId = `${blockData.hash}-${event.event.index.toString()}`;
-	const history = await getAddLiquidity(historyId);
+	const history = await getRemoveLiquidity(historyId);
 	history.addressId = owner.toString();
 	history.poolId = poolId;
 	history.token0Id = token0Name;
 	history.token1Id = token1Name;
 	history.token0Amount = BigInt(token0Decrement.toString());
 	history.token1Amount = BigInt(token1Decrement.toString());
+	history.shareAmount = BigInt(shareAmount.toString());
 	history.price0 = BigInt(price0.toChainData())
 	history.price1 = BigInt(price1.toChainData())
 	history.blockId = blockData.id;
