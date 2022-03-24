@@ -4,6 +4,7 @@ import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
 import { getAccount, getAddLiquidity, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getRemoveLiquidity, getStartOfDay, getStartOfHour, getToken, getTokenDailyData, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
+import { getTotalTVL } from "../utils/getTotalTVL";
 
 export const removeLiquidity = async (event: SubstrateEvent) => {
 	// [who, currency_id_0, pool_0_decrement, currency_id_1, pool_1_decrement, share_decrement\]
@@ -51,7 +52,7 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	const newPool = await getPool(token0Name, token1Name, poolId);
 	newPool.token0TVL = BigInt(newPrice0.times(FN.fromInner(newPool.token0Amount.toString(), token0.decimals)).toChainData());
 	newPool.token1TVL = BigInt(newPrice1.times(FN.fromInner(newPool.token1Amount.toString(), token1.decimals)).toChainData());
-	newPool.totalTVL = newPool.token0TVL + newPool.token1TVL;
+	newPool.totalTVL = getTotalTVL(newPool.token0TVL, newPool.token1TVL);
 	await newPool.save();
 
 	const hourPoolId = `${poolId}-${hourTime.getTime()}`;
@@ -71,6 +72,7 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	hourPool.token1TradeVolume = BigInt(token1Decrement);
 	hourPool.token0TVL = newPool.token0TVL;
 	hourPool.token1TVL = newPool.token1TVL;
+	hourPool.totalTVL = getTotalTVL(hourPool.token0TVL, hourPool.token1TVL);
 	hourPool.txCount = hourPool.txCount + BigInt(1);
 	hourPool.token0High = hourPool.token0High > BigInt(newPrice0.toChainData()) ? hourPool.token0High : BigInt(newPrice0.toChainData());
 	hourPool.token0Low = hourPool.token0Low < BigInt(newPrice0.toChainData()) ? hourPool.token0Low : BigInt(newPrice0.toChainData());
@@ -98,7 +100,7 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	dailyPool.token1TradeVolume = BigInt(token1Decrement);
 	dailyPool.token0TVL = newPool.token0TVL;
 	dailyPool.token1TVL = newPool.token1TVL;
-	dailyPool.totalTVL = dailyPool.token0TVL + dailyPool.token1TVL;
+	dailyPool.totalTVL = getTotalTVL(dailyPool.token0TVL, dailyPool.token1TVL);
 	dailyPool.txCount = dailyPool.txCount + BigInt(1);
 	dailyPool.token0High = dailyPool.token0High > BigInt(oldPrice0.toChainData()) ? dailyPool.token0High : BigInt(oldPrice0.toChainData());
 	dailyPool.token0Low = dailyPool.token0Low < BigInt(oldPrice0.toChainData()) ? dailyPool.token0Low : BigInt(oldPrice0.toChainData());
