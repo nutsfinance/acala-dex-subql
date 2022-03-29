@@ -62,17 +62,24 @@ export const circulatePrice = async (name: MaybeCurrency) => {
 
 	if (_name === "KUSD" || _name === "AUSD") return getStableCurrencyPrice();
 
-	else if (_name === 'KSM' || _name === 'DOT') return getStakingCurrencyPrice(stakingCurrencyName, StableCurrencyName);
+	else if (_name === 'KSM' || _name === 'DOT' || _name === 'lc://13') return getStakingCurrencyPrice(stakingCurrencyName, StableCurrencyName);
 
 	else return getOtherPrice(_name, stakingCurrencyName, StableCurrencyName);
 }
 
 export const queryPrice = async (token: string) => {
-	const price = await circulatePrice(token);
+	const queryToken = token == 'sa://0' ? 'KSM' : token;
+	const price = await circulatePrice(queryToken);
 	price.setPrecision(18);
 
 	const tokenData = await getToken(token);
 	tokenData.price = BigInt(price.toChainData());
+
+	if(queryToken != token) {
+		const queryTokenData = await getToken(queryToken);
+		queryTokenData.price = BigInt(price.toChainData());
+		await queryTokenData.save();
+	}
 
 	await tokenData.save();
 	return price
