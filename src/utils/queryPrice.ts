@@ -52,6 +52,12 @@ const getStakingCurrencyPrice = async (stakingCurrency: string, StableCurrency: 
 	return result.rate;
 }
 
+const getDOTPrice = async () => {
+	const lc13Price = await getPriceFromDexPool('lc://13', 'AUSD');
+	const dotPrice = await getPriceFromDexPool('DOT', 'lc://13');
+	return dotPrice.rate.mul(lc13Price.rate);
+}
+
 export const circulatePrice = async (name: MaybeCurrency) => {
 	const _name = forceToCurrencyName(name);
 
@@ -62,7 +68,9 @@ export const circulatePrice = async (name: MaybeCurrency) => {
 
 	if (_name === "KUSD" || _name === "AUSD") return getStableCurrencyPrice();
 
-	else if (_name === 'KSM' || _name === 'DOT' || _name === 'lc://13') return getStakingCurrencyPrice(stakingCurrencyName, StableCurrencyName);
+	else if (_name === 'KSM') return getStakingCurrencyPrice(stakingCurrencyName, StableCurrencyName);
+
+	else if (_name === 'DOT') return getDOTPrice();
 
 	else return getOtherPrice(_name, stakingCurrencyName, StableCurrencyName);
 }
