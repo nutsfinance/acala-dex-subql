@@ -58,21 +58,31 @@ const getDOTPrice = async () => {
 	return dotPrice.rate.mul(lc13Price.rate);
 }
 
+const getTAIPrice = async (stakingCurrency: string, stableCurrency: string) => {
+	// Use KSM price for taiKSM
+	const ksmPrice = await getStakingCurrencyPrice(stakingCurrency, stableCurrency);
+	const taiPrice = await getPriceFromDexPool('TAI', 'sa://0');
+
+	return taiPrice.rate.mul(ksmPrice);
+}
+
 export const circulatePrice = async (name: MaybeCurrency) => {
 	const _name = forceToCurrencyName(name);
 
 	const stakingCurrency = api.consts.prices.getStakingCurrencyId;
-	const StableCurrency = api.consts.prices.getStableCurrencyId;
+	const stableCurrency = api.consts.prices.getStableCurrencyId;
 	const stakingCurrencyName = forceToCurrencyName(stakingCurrency);
-	const StableCurrencyName = forceToCurrencyName(StableCurrency);
+	const stableCurrencyName = forceToCurrencyName(stableCurrency);
 
 	if (_name === "KUSD" || _name === "AUSD") return getStableCurrencyPrice();
 
-	else if (_name === 'KSM') return getStakingCurrencyPrice(stakingCurrencyName, StableCurrencyName);
+	else if (_name === 'KSM') return getStakingCurrencyPrice(stakingCurrencyName, stableCurrencyName);
 
 	else if (_name === 'DOT') return getDOTPrice();
 
-	else return getOtherPrice(_name, stakingCurrencyName, StableCurrencyName);
+	else if (_name === "TAI") return getTAIPrice(stakingCurrencyName, stableCurrencyName);
+
+	else return getOtherPrice(_name, stakingCurrencyName, stableCurrencyName);
 }
 
 export const queryPrice = async (token: string) => {
