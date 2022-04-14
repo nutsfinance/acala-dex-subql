@@ -176,7 +176,7 @@ export const createProvisionToEnableHistory = async (event: SubstrateEvent) => {
 	const {address} =await getAccount(event.extrinsic.extrinsic.signer.toString());
 
 	const [poolId, token0Id, token1Id] = getPoolId(tradingPair[0], tradingPair[1]);
-	const historyId = `${blockData.hash}-${event.extrinsic.idx}`;
+	const historyId = `${blockData.hash}-${event?.extrinsic?.idx || ''}`;
 	const history = await getProvisionToEnabled(historyId);
 	history.addressId = address;
 	history.poolId = poolId;

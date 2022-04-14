@@ -181,7 +181,7 @@ export const createRemoveLiquidyHistory = async (event: SubstrateEvent, price0: 
 	const token0Decrement = (token0Name === forceToCurrencyName(currency0) ? pool0Decrement : pool1Decrement).toString();
 	const token1Decrement = (token1Name === forceToCurrencyName(currency0) ? pool0Decrement : pool1Decrement).toString();
 
-	const historyId = `${blockData.hash}-${event.extrinsic.idx}`;
+	const historyId = `${blockData.hash}-${event?.extrinsic?.idx || ''}`;
 	const history = await getRemoveLiquidity(historyId);
 	history.addressId = owner.toString();
 	history.poolId = poolId;

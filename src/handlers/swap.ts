@@ -438,7 +438,7 @@ const createSwapHistory = async (event: SubstrateEvent) => {
 	const blockData = await ensureBlock(event);
 	await getAccount(who.toString());
 
-	const historyId = `${blockData.id}-${event.extrinsic.idx}`;
+	const historyId = `${blockData.id}-${event?.extrinsic?.idx || ''}`;
 	const history = await getSwap(historyId);
 
 	const [poolId] = getPoolId(token0, token1);
