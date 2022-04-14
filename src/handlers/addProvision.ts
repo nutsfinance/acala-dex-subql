@@ -56,7 +56,7 @@ export const addUserProvision = async (account: string, poolId: string, token0Am
 export const createAddProvisionHistory = async (event: SubstrateEvent, addressId: string, poolId: string, token0: string, token1: string, token0Amount: bigint, token1Amount: bigint) => {
 	const blockData = await ensureBlock(event);
 
-	const historyId = `${blockData.hash}-${event.event.index.toString()}`;
+	const historyId = `${blockData.hash}-${event.extrinsic.idx}`;
 	const history = await getAddProvision(historyId);
 	history.addressId = addressId;
 	history.poolId = poolId;
