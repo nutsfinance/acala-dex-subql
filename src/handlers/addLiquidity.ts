@@ -179,7 +179,7 @@ export const createAddLiquidyHistory = async (event: SubstrateEvent, price0: FN,
 	const token0Increment = (token0Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
 	const token1Increment = (token1Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
 
-	const historyId = `${blockData.hash}-${event?.extrinsic?.idx || ''}`;
+	const historyId = `${blockData.hash}-${event.idx}`;
 	const history = await getAddLiquidity(historyId);
 	history.addressId = owner.toString();
 	history.poolId = poolId;
