@@ -29,7 +29,7 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	const token1Changed = BigInt(token1Decrement) > 0 ? BigInt(token1Decrement) : -BigInt(token1Decrement)
 
 	const token0ChangedUSD = oldPrice0.times(FN.fromInner(token0Decrement, token0.decimals));
-	const token1ChangedUSD = oldPrice0.times(FN.fromInner(token1Decrement, token1.decimals));
+	const token1ChangedUSD = oldPrice1.times(FN.fromInner(token1Decrement, token1.decimals));
 	token0ChangedUSD.setPrecision(18);
 	token1ChangedUSD.setPrecision(18);
 
