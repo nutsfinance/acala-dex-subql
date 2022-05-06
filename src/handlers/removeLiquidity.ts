@@ -75,10 +75,10 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	hourPool.totalTVL = getTotalTVL(hourPool.token0TVL, hourPool.token1TVL);
 	hourPool.txCount = hourPool.txCount + BigInt(1);
 	hourPool.token0High = hourPool.token0High > BigInt(newPrice0.toChainData()) ? hourPool.token0High : BigInt(newPrice0.toChainData());
-	hourPool.token0Low = hourPool.token0Low < BigInt(newPrice0.toChainData()) ? hourPool.token0Low : BigInt(newPrice0.toChainData());
+	hourPool.token0Low = hourPool.token0Low === BigInt(0) ? BigInt(newPrice0.toChainData()) : (hourPool.token0Low < BigInt(newPrice0.toChainData()) ? hourPool.token0Low : BigInt(newPrice0.toChainData()));
 	hourPool.token0Close = BigInt(newPrice0.toChainData());
 	hourPool.token1High = hourPool.token1High > BigInt(newPrice1.toChainData()) ? hourPool.token1High : BigInt(newPrice1.toChainData());
-	hourPool.token1Low = hourPool.token1Low < BigInt(newPrice1.toChainData()) ? hourPool.token1Low : BigInt(newPrice1.toChainData());
+	hourPool.token1Low = hourPool.token1Low === BigInt(0) ? BigInt(newPrice1.toChainData()) : (hourPool.token1Low < BigInt(newPrice1.toChainData()) ? hourPool.token1Low : BigInt(newPrice1.toChainData()));
 	hourPool.token1Close = BigInt(newPrice1.toChainData());
 	hourPool.updateAtBlockId = blockData.id;
 	await hourPool.save();
@@ -103,10 +103,10 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	dailyPool.totalTVL = getTotalTVL(dailyPool.token0TVL, dailyPool.token1TVL);
 	dailyPool.txCount = dailyPool.txCount + BigInt(1);
 	dailyPool.token0High = dailyPool.token0High > BigInt(oldPrice0.toChainData()) ? dailyPool.token0High : BigInt(oldPrice0.toChainData());
-	dailyPool.token0Low = dailyPool.token0Low < BigInt(oldPrice0.toChainData()) ? dailyPool.token0Low : BigInt(oldPrice0.toChainData());
+	dailyPool.token0Low = dailyPool.token0Low === BigInt(0) ? BigInt(newPrice0.toChainData()) : (dailyPool.token0Low < BigInt(newPrice0.toChainData()) ? dailyPool.token0Low : BigInt(newPrice0.toChainData()));
 	dailyPool.token0Close = BigInt(oldPrice0.toChainData());
 	dailyPool.token1High = dailyPool.token1High > BigInt(newPrice1.toChainData()) ? dailyPool.token1High : BigInt(newPrice1.toChainData());
-	dailyPool.token1Low = dailyPool.token1Low < BigInt(newPrice1.toChainData()) ? dailyPool.token1Low : BigInt(newPrice1.toChainData());
+	dailyPool.token1Low = dailyPool.token1Low === BigInt(0) ? BigInt(newPrice1.toChainData()) : (dailyPool.token1Low < BigInt(newPrice1.toChainData()) ? dailyPool.token1Low : BigInt(newPrice1.toChainData()));
 	dailyPool.token1Close = BigInt(newPrice1.toChainData());
 	dailyPool.updateAtBlockId = blockData.id;
 	await dailyPool.save();
