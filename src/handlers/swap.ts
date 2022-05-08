@@ -391,6 +391,7 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		dailyToken0.dailyTxCount = dailyToken0.dailyTxCount + BigInt(1);
 		dailyToken0.timestamp = dailyTime;
 		dailyToken0.updateAtBlockId = blockData.id;
+		dailyToken0.price = BigInt(newPrice0.toChainData());
 		dailyToken1.tokenId = token1Name;
 		dailyToken1.amount = token1.amount;
 		dailyToken1.tvl = token1.tvl;
@@ -399,6 +400,7 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		dailyToken1.dailyTxCount = dailyToken1.dailyTxCount + BigInt(1);
 		dailyToken1.timestamp = dailyTime;
 		dailyToken1.updateAtBlockId = blockData.id;
+		dailyToken1.price = BigInt(newPrice1.toChainData());
 
 		await token0.save();
 		await token1.save();
