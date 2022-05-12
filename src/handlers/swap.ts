@@ -39,11 +39,6 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		const pool = await getPool(token0Name, token1Name, poolId);
 		const oldTotalTVL = pool.totalTVL;
 
-		logger.info(`swap1 : ${i} : ${poolId} : ${tradingPath.toString()} : ${supplyAmount} : ${targetAmount}`);
-		logger.info(`${supplyTokenName} : ${targetTokenName}`);
-		logger.info(`${pool.token0Id} : ${pool.token1Id}`);
-		logger.info(`${pool.token0Amount} : ${pool.token1Amount}`);
-
 		let token0Amount = BigInt(0);
 		let token1Amount = BigInt(0);
 
@@ -96,8 +91,6 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		pool.tradeVolumeUSD = pool.tradeVolumeUSD + BigInt(totoalChangedUSD.toChainData());
 		pool.txCount = pool.txCount + BigInt(1);
 		await pool.save();
-
-		logger.info(`${pool.token0Amount} : ${pool.token1Amount} \n`);
 
 		const newPrice0 = await queryPrice(token0Name);
 		const newPrice1 = await queryPrice(token1Name);
@@ -261,11 +254,6 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		const token0Amount = token0Name === supplyTokenName ? result0.toString() : `-${result1.toString()}`;
 		const token1Amount = token1Name === supplyTokenName ? result0.toString() : `-${result1.toString()}`;
 
-		logger.info(`swap2 : ${i} : ${poolId} : ${tradingPath.toString()} : ${resultPath.toString()}`);
-		logger.info(`${token0Amount} : ${token1Amount}`);
-		logger.info(`${pool.token0Id} : ${pool.token1Id}`);
-		logger.info(`${pool.token0Amount} : ${pool.token1Amount}`);
-
 		const token0Changed = BigInt(token0Amount) > 0 ? BigInt(token0Amount) : -BigInt(token0Amount);
 		const token1Changed = BigInt(token1Amount) > 0 ? BigInt(token1Amount) : -BigInt(token1Amount);
 		const token0ChangedUSD = oldPrice0.times(FN.fromInner(token0Changed.toString(), token0.decimals))
@@ -292,8 +280,6 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		pool.tradeVolumeUSD = pool.tradeVolumeUSD + BigInt(totoalChangedUSD.toChainData())
 		pool.txCount = pool.txCount + BigInt(1);
 		await pool.save();
-
-		logger.info(`${pool.token0Amount} : ${pool.token1Amount} \n`);
 
 		const newPrice0 = await queryPrice(token0Name);
 		const newPrice1 = await queryPrice(token1Name);

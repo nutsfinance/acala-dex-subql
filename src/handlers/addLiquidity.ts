@@ -33,12 +33,6 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	token0ChangedUSD.setPrecision(18);
 	token1ChangedUSD.setPrecision(18);
 
-	logger.info(`add: ${poolId}`);
-	logger.info(`${forceToCurrencyName(currency0)} : ${forceToCurrencyName(currency1)}`);
-	logger.info(`${token0Increment} : ${token1Increment}`);
-	logger.info(`${pool.token0Id} : ${pool.token1Id}`);
-	logger.info(`${pool.token0Amount} : ${pool.token1Amount}`);
-
 	pool.token0Amount = pool.token0Amount + BigInt(token0Increment);
 	pool.token1Amount = pool.token1Amount + BigInt(token1Increment);
 	pool.token0Price = BigInt(oldPrice0.toChainData());
@@ -48,8 +42,6 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	pool.tradeVolumeUSD = pool.tradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
 	pool.txCount = pool.txCount + BigInt(1);
 	await pool.save();
-
-	logger.info(`${pool.token0Amount} : ${pool.token1Amount} \n`);
 
 	const newPrice0 = await queryPrice(token0Name);
 	const newPrice1 = await queryPrice(token1Name);
