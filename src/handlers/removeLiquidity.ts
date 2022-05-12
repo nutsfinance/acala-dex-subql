@@ -2,7 +2,7 @@ import { forceToCurrencyName, FixedPointNumber as FN } from "@acala-network/sdk-
 import { AccountId, Balance, CurrencyId } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
-import { getAccount, getAddLiquidity, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getRemoveLiquidity, getStartOfDay, getStartOfHour, getToken, getTokenDailyData, queryPrice } from "../utils";
+import { getAccount, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getRemoveLiquidity, getStartOfDay, getStartOfHour, getToken, getTokenDailyData, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
 import { getTotalTVL } from "../utils/getTotalTVL";
 
@@ -36,15 +36,23 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	const pool = await getPool(token0Name, token1Name, poolId);
 	const oldTotalTVL = pool.totalTVL;
 
-	pool.token0Amount = pool.token0Amount - BigInt(token0Decrement);
-	pool.token1Amount = pool.token1Amount - BigInt(token1Decrement);
+	logger.info(`remove: ${poolId}`);
+	logger.info(`${forceToCurrencyName(currency0)} : ${forceToCurrencyName(currency1)}`)
+	logger.info(`${token0Decrement} : ${token1Decrement}`);
+	logger.info(`${pool.token0Id} : ${pool.token1Id}`);
+	logger.info(`${pool.token0Amount} : ${pool.token1Amount}`);
+
+	pool.token0Amount = pool.token0Amount - BigInt(token0Changed);
+	pool.token1Amount = pool.token1Amount - BigInt(token1Changed);
 	pool.token0Price = BigInt(oldPrice0.toChainData())
 	pool.token1Price = BigInt(oldPrice1.toChainData())
-	pool.token0TradeVolume = pool.token0TradeVolume + BigInt(token0Decrement);
-	pool.token1TradeVolume = pool.token1TradeVolume + BigInt(token1Decrement);
+	pool.token0TradeVolume = pool.token0TradeVolume + BigInt(token0Changed);
+	pool.token1TradeVolume = pool.token1TradeVolume + BigInt(token1Changed);
 	pool.tradeVolumeUSD = pool.tradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
 	pool.txCount = pool.txCount + BigInt(1);
 	await pool.save();
+
+	logger.info(`${pool.token0Amount} : ${pool.token1Amount} \n`);
 
 	const newPrice0 = await queryPrice(token0Name);
 	const newPrice1 = await queryPrice(token1Name);
@@ -52,6 +60,8 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	const newPool = await getPool(token0Name, token1Name, poolId);
 	newPool.token0TVL = BigInt(newPrice0.times(FN.fromInner(newPool.token0Amount.toString(), token0.decimals)).toChainData());
 	newPool.token1TVL = BigInt(newPrice1.times(FN.fromInner(newPool.token1Amount.toString(), token1.decimals)).toChainData());
+	newPool.token0Price = BigInt(newPrice0.toChainData());
+	newPool.token1Price = BigInt(newPrice1.toChainData());
 	newPool.totalTVL = getTotalTVL(newPool.token0TVL, newPool.token1TVL);
 	await newPool.save();
 
@@ -65,8 +75,8 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	hourPool.token1Amount = pool.token1Amount;
 	hourPool.token0Price = BigInt(newPrice0.toChainData())
 	hourPool.token1Price = BigInt(newPrice1.toChainData())
-	hourPool.hourlyToken0TradeVolume = hourPool.hourlyToken0TradeVolume + BigInt(token0Decrement);
-	hourPool.hourlyToken1TradeVolume = hourPool.hourlyToken1TradeVolume + BigInt(token1Decrement);
+	hourPool.hourlyToken0TradeVolume = hourPool.hourlyToken0TradeVolume + token0Changed;
+	hourPool.hourlyToken1TradeVolume = hourPool.hourlyToken1TradeVolume + token1Changed;
 	hourPool.hourlyTradeVolumeUSD = hourPool.hourlyTradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
 	hourPool.token0TradeVolume = BigInt(token0Decrement);
 	hourPool.token1TradeVolume = BigInt(token1Decrement);
@@ -89,12 +99,12 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	dailyPool.timestamp = dailyTime;
 	dailyPool.token0Id = token0Name;
 	dailyPool.token1Id = token1Name;
-	dailyPool.token0Amount = pool.token0Amount;
-	dailyPool.token1Amount = pool.token1Amount;
+	dailyPool.token0Amount = newPool.token0Amount;
+	dailyPool.token1Amount = newPool.token1Amount;
 	dailyPool.token0Price = BigInt(newPrice0.toChainData())
 	dailyPool.token1Price = BigInt(newPrice1.toChainData())
-	dailyPool.dailyToken0TradeVolume = dailyPool.dailyToken0TradeVolume + BigInt(token0Decrement);
-	dailyPool.dailyToken1TradeVolume = dailyPool.dailyToken1TradeVolume + BigInt(token1Decrement);
+	dailyPool.dailyToken0TradeVolume = dailyPool.dailyToken0TradeVolume + token0Changed;
+	dailyPool.dailyToken1TradeVolume = dailyPool.dailyToken1TradeVolume + token1Changed;
 	dailyPool.dailyTradeVolumeUSD = dailyPool.dailyTradeVolumeUSD + BigInt(token0ChangedUSD.toChainData()) + BigInt(token1ChangedUSD.toChainData());
 	dailyPool.token0TradeVolume = BigInt(token0Decrement);
 	dailyPool.token1TradeVolume = BigInt(token1Decrement);
@@ -132,13 +142,13 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	dailyDex.updateAtBlockId = blockData.id;
 	await dailyDex.save();
 
-	token0.amount = token0.amount - BigInt(token0Decrement);
+	token0.amount = token0.amount - token0Changed;
 	token0.tvl = BigInt(newPrice0.times(FN.fromInner(token0.amount.toString(), token0.decimals)).toChainData());
 	token0.tradeVolume = token0.tradeVolume + token0Changed;
 	token0.tradeVolumeUSD = token0.tradeVolumeUSD + BigInt(token0ChangedUSD.toChainData())
 	token0.txCount = token0.txCount + BigInt(1);
 	token0.price = BigInt(newPrice0.toChainData())
-	token1.amount = token1.amount - BigInt(token1Decrement);
+	token1.amount = token1.amount - token1Changed;
 	token1.tvl = BigInt(newPrice1.times(FN.fromInner(token1.amount.toString(), token1.decimals)).toChainData());
 	token1.tradeVolume = token1.tradeVolume + token1Changed
 	token1.tradeVolumeUSD = token1.tradeVolumeUSD + BigInt(token1ChangedUSD.toChainData());
@@ -168,7 +178,6 @@ export const removeLiquidity = async (event: SubstrateEvent) => {
 	await token1.save();
 	await Dailytoken0.save();
 	await Dailytoken1.save();
-
 	await createRemoveLiquidyHistory(event, oldPrice0, oldPrice1);
 };
 

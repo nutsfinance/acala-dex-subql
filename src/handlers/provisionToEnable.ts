@@ -2,7 +2,7 @@ import { FixedPointNumber as FN } from "@acala-network/sdk-core";
 import { Balance, TradingPair } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
-import { getAccount, getDailyDex, getDex, getHourDex, getHourlyPool, getPool, getProvisionPool, getProvisionToEnabled, getStartOfDay, getStartOfHour, getToken, queryPrice } from "../utils";
+import { getAccount, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getProvisionPool, getProvisionToEnabled, getStartOfDay, getStartOfHour, getToken, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
 
 export const provisionToEnable = async (event: SubstrateEvent) => {
@@ -86,11 +86,11 @@ export const createHourPool = async (event: SubstrateEvent, token0Amount: bigint
 	hourPool.token0TVL = BigInt(price0.times(FN.fromInner(token0Amount.toString(), decimals0)).toChainData());
 	hourPool.token1TVL = BigInt(price1.times(FN.fromInner(token1Amount.toString(), decimals1)).toChainData());
 	hourPool.totalTVL = hourPool.token0TVL + hourPool.token1TVL;
-	hourPool.token0High = BigInt(price0.toChainData());
+	hourPool.token0Open = BigInt(price0.toChainData());
 	hourPool.token0High = BigInt(price0.toChainData());
 	hourPool.token0Low = BigInt(price0.toChainData());
 	hourPool.token0Close = BigInt(price0.toChainData());
-	hourPool.token1High = BigInt(price1.toChainData());
+	hourPool.token1Open = BigInt(price1.toChainData());
 	hourPool.token1High = BigInt(price1.toChainData());
 	hourPool.token1Low = BigInt(price1.toChainData());
 	hourPool.token1Close = BigInt(price1.toChainData());
@@ -106,7 +106,7 @@ export const createDailyPool = async (event: SubstrateEvent, token0Amount: bigin
 	const dailyTime = getStartOfDay(event.block.timestamp);
 
 	const dailyPoolId = `${poolId}-${dailyTime.getTime()}`;
-	const dailyPool = await getHourlyPool(dailyPoolId);
+	const dailyPool = await getDailyPool(dailyPoolId);
 	dailyPool.poolId = poolId;
 	dailyPool.timestamp = dailyTime;
 	dailyPool.token0Id = token0Id;
@@ -118,11 +118,11 @@ export const createDailyPool = async (event: SubstrateEvent, token0Amount: bigin
 	dailyPool.token0TVL = BigInt(price0.times(FN.fromInner(token0Amount.toString(), decimals0)).toChainData());
 	dailyPool.token1TVL = BigInt(price1.times(FN.fromInner(token1Amount.toString(), decimals1)).toChainData());
 	dailyPool.totalTVL = dailyPool.token0TVL + dailyPool.token1TVL;
-	dailyPool.token0High = BigInt(price0.toChainData());
+	dailyPool.token0Open = BigInt(price0.toChainData());
 	dailyPool.token0High = BigInt(price0.toChainData());
 	dailyPool.token0Low = BigInt(price0.toChainData());
 	dailyPool.token0Close = BigInt(price0.toChainData());
-	dailyPool.token1High = BigInt(price1.toChainData());
+	dailyPool.token1Open = BigInt(price1.toChainData());
 	dailyPool.token1High = BigInt(price1.toChainData());
 	dailyPool.token1Low = BigInt(price1.toChainData());
 	dailyPool.token1Close = BigInt(price1.toChainData());

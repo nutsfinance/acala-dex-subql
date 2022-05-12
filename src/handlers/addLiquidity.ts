@@ -10,6 +10,7 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	// [who, currency_id_0, pool_0_increment, currency_id_1, pool_1_increment, share_increment\]
 	const [_, currency0, pool0Increment, currency1, pool1Increment] = event.event.data as unknown as [AccountId, CurrencyId, Balance, CurrencyId, Balance];
 	const blockData = await ensureBlock(event);
+
 	const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
 	const token0Increment = (token0Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
 	const token1Increment = (token1Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
@@ -32,6 +33,12 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	token0ChangedUSD.setPrecision(18);
 	token1ChangedUSD.setPrecision(18);
 
+	logger.info(`add: ${poolId}`);
+	logger.info(`${forceToCurrencyName(currency0)} : ${forceToCurrencyName(currency1)}`);
+	logger.info(`${token0Increment} : ${token1Increment}`);
+	logger.info(`${pool.token0Id} : ${pool.token1Id}`);
+	logger.info(`${pool.token0Amount} : ${pool.token1Amount}`);
+
 	pool.token0Amount = pool.token0Amount + BigInt(token0Increment);
 	pool.token1Amount = pool.token1Amount + BigInt(token1Increment);
 	pool.token0Price = BigInt(oldPrice0.toChainData());
@@ -42,12 +49,16 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	pool.txCount = pool.txCount + BigInt(1);
 	await pool.save();
 
+	logger.info(`${pool.token0Amount} : ${pool.token1Amount} \n`);
+
 	const newPrice0 = await queryPrice(token0Name);
 	const newPrice1 = await queryPrice(token1Name);
 
 	const newPool = await getPool(token0Name, token1Name, poolId);
 	newPool.token0TVL = BigInt(newPrice0.times(FN.fromInner(newPool.token0Amount.toString(), token0.decimals)).toChainData());
 	newPool.token1TVL = BigInt(newPrice1.times(FN.fromInner(newPool.token1Amount.toString(), token1.decimals)).toChainData());
+	newPool.token0Price = BigInt(newPrice0.toChainData());
+	newPool.token1Price = BigInt(newPrice1.toChainData());
 	newPool.totalTVL = getTotalTVL(newPool.token0TVL, newPool.token1TVL);
 	await newPool.save();
 
