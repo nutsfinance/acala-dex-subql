@@ -394,6 +394,7 @@ type Swap @entity {
   tradePath: String
   price0: BigInt
   price1: BigInt
+  amounts: String
 
   block: Block
   extrinsic: Extrinsic

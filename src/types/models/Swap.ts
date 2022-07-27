@@ -34,6 +34,8 @@ export class Swap implements Entity {
 
     public price1?: bigint;
 
+    public amounts?: string;
+
     public blockId?: string;
 
     public extrinsicId?: string;

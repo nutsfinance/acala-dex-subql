@@ -13,7 +13,6 @@ export const swap = async (event: SubstrateEvent) => {
 	} else {
 		await swapByRuntimeLt1008(event);
 	}
-	await createSwapHistory(event);
 };
 
 const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
@@ -22,6 +21,7 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 	const blockData = await ensureBlock(event);
 	const hourTime = getStartOfHour(blockData.timestamp);
 	const dailyTime = getStartOfDay(blockData.timestamp);
+	let tokenSwapAmountPath = '';
 
 	for (let i = 0; i < tradingPath.length - 1; i++) {
 		const currency0 = tradingPath[i];
@@ -45,6 +45,7 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		if (tradingPath.length === 2) {
 			token0Amount = token0Name === supplyTokenName ? BigInt(supplyAmount.toString()) : - BigInt(targetAmount.toString());
 			token1Amount = token1Name === supplyTokenName ? BigInt(supplyAmount.toString()) : - BigInt(targetAmount.toString());
+			tokenSwapAmountPath = `${supplyAmount.toString()},${targetAmount.toString()}`
 		} else {
 			// calculate
 			const supplyPool = token0Name === supplyTokenName ? FN.fromInner(pool.token0Amount.toString()) : FN.fromInner(pool.token1Amount.toString());
@@ -62,6 +63,12 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 
 			token0Amount = pool.token0Id === supplyTokenName ? BigInt(_supplyAmount.toChainData()) : BigInt('-' + targetAmount.toChainData());
 			token1Amount = pool.token1Id === supplyTokenName ? BigInt(_supplyAmount.toChainData()) : BigInt('-' + targetAmount.toChainData());
+
+			if(i === 0) {
+				tokenSwapAmountPath = token0Amount > 0 ? `${token0Amount.toString()},${token1Amount.toString()}` : `${token1Amount.toString()},${token0Amount.toString()}`;
+			} else {
+				tokenSwapAmountPath += token0Amount > 0 ? `,${token1Amount.toString()}` : `,${token0Amount.toString()}`;
+			}
 		}
 		const oldPrice0 = await queryPrice(token0Name);
 		const oldPrice1 = await queryPrice(token1Name);
@@ -222,6 +229,8 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		await dailyToken0.save();
 		await dailyToken1.save();
 	}
+
+	await createSwapHistory(event, tokenSwapAmountPath);
 };
 
 const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
@@ -230,6 +239,7 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 	const blockData = await ensureBlock(event);
 	const hourTime = getStartOfHour(blockData.timestamp);
 	const dailyTime = getStartOfDay(blockData.timestamp);
+	let tokenSwapAmountPath = '';
 
 	for (let i = 0; i < tradingPath.length - 1; i++) {
 		const currency0 = tradingPath[i];
@@ -262,6 +272,12 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		token0ChangedUSD.setPrecision(18)
 		token1ChangedUSD.setPrecision(18)
 		totoalChangedUSD.setPrecision(18);
+
+		if (i === 0) {
+			tokenSwapAmountPath = token0Amount.startsWith('-') ? `${token1Changed.toString()},${token0Changed.toString()}` : `${token0Changed.toString()},${token1Changed.toString()}`;
+		} else {
+			tokenSwapAmountPath += token0Amount.startsWith('-') ? `,${token0Changed.toString()}` : `,${token1Changed.toString()}`
+		}
 
 		const suppluTokenAmount = supplyTokenName === token0Name ? token0Changed : token1Changed
 		const suppluTokenDecimals = supplyTokenName === token0Name ? token0.decimals : token1.decimals;
@@ -412,9 +428,11 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		await dailyToken0.save();
 		await dailyToken1.save();
 	}
+
+	await createSwapHistory(event, tokenSwapAmountPath);
 };
 
-const createSwapHistory = async (event: SubstrateEvent) => {
+const createSwapHistory = async (event: SubstrateEvent, amounts: string) => {
 	let who: AccountId;
 	let supplyAmount: Balance
 	let targetAmount: Balance
@@ -462,6 +480,7 @@ const createSwapHistory = async (event: SubstrateEvent) => {
 	history.token0InAmount = BigInt(supplyAmount.toString());
 	history.token1OutAmount = BigInt(targetAmount.toString());
 	history.tradePath = tradingPath.map(token => forceToCurrencyName(token)).join(',');
+	history.amounts = amounts;
 	history.price0 = BigInt(price0.toChainData())
 	history.price1 = BigInt(price1.toChainData())
 	history.timestamp = blockData.timestamp;
