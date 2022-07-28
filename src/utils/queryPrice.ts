@@ -71,8 +71,8 @@ export const circulatePrice = async (name: MaybeCurrency) => {
 
 	const stakingCurrency = api.consts.prices.getStakingCurrencyId;
 	const stableCurrency = api.consts.prices.getStableCurrencyId;
-	const stakingCurrencyName = forceToCurrencyName(stakingCurrency);
-	const stableCurrencyName = forceToCurrencyName(stableCurrency);
+	const stakingCurrencyName = forceToCurrencyName(stakingCurrency as any);
+	const stableCurrencyName = forceToCurrencyName(stableCurrency as any);
 
 	if (_name === "KUSD" || _name === "AUSD") return getStableCurrencyPrice();
 
