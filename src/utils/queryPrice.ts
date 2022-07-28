@@ -1,5 +1,6 @@
-import { FixedPointNumber as FN, forceToCurrencyName, MaybeCurrency, Token } from "@acala-network/sdk-core";
+import { FixedPointNumber as FN, MaybeCurrency, Token } from "@acala-network/sdk-core";
 import { getPool, getToken } from ".";
+import { getTokenName } from './getTokenName';
 
 const getOtherPrice = async (token: string, stakingCurrency: string, StableCurrency: string) => {
 	const { rate: rateA, amount: _amountA } = await getPriceFromDexPool(token, stakingCurrency);
@@ -67,12 +68,12 @@ const getTAIPrice = async (stakingCurrency: string, stableCurrency: string) => {
 }
 
 export const circulatePrice = async (name: MaybeCurrency) => {
-	const _name = forceToCurrencyName(name);
+	const _name = getTokenName(name);
 
 	const stakingCurrency = api.consts.prices.getStakingCurrencyId;
 	const stableCurrency = api.consts.prices.getStableCurrencyId;
-	const stakingCurrencyName = forceToCurrencyName(stakingCurrency as any);
-	const stableCurrencyName = forceToCurrencyName(stableCurrency as any);
+	const stakingCurrencyName = getTokenName(stakingCurrency as any);
+	const stableCurrencyName = getTokenName(stableCurrency as any);
 
 	if (_name === "KUSD" || _name === "AUSD") return getStableCurrencyPrice();
 

@@ -1,9 +1,10 @@
-import { forceToCurrencyName, FixedPointNumber as FN } from "@acala-network/sdk-core";
+import { FixedPointNumber as FN } from "@acala-network/sdk-core";
 import { AccountId, Balance, CurrencyId } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
 import { getAccount, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getStartOfDay, getStartOfHour, getSwap, getToken, getTokenDailyData, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
+import { getTokenName } from '../utils/getTokenName';
 import { getTotalTVL } from "../utils/getTotalTVL";
 
 export const swap = async (event: SubstrateEvent) => {
@@ -27,8 +28,8 @@ const swapByRuntimeLt1008 = async (event: SubstrateEvent) => {
 		const currency0 = tradingPath[i];
 		const currency1 = tradingPath[i + 1];
 
-		const supplyTokenName = forceToCurrencyName(currency0);
-		const targetTokenName = forceToCurrencyName(currency1);
+		const supplyTokenName = getTokenName(currency0);
+		const targetTokenName = getTokenName(currency1);
 
 		const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
 		const token0 = await getToken(token0Name);
@@ -247,7 +248,7 @@ const swapByRuntimeGt1008 = async (event: SubstrateEvent) => {
 		const result0 = resultPath[i];
 		const result1 = resultPath[i + 1];
 
-		const supplyTokenName = forceToCurrencyName(currency0);
+		const supplyTokenName = getTokenName(currency0);
 
 		const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
 		const token0 = await getToken(token0Name);
@@ -470,16 +471,16 @@ const createSwapHistory = async (event: SubstrateEvent, amounts: string) => {
 
 	await getToken(poolId)
 
-	const price0 = await queryPrice(forceToCurrencyName(token0))
-	const price1 = await queryPrice(forceToCurrencyName(token1))
+	const price0 = await queryPrice(getTokenName(token0))
+	const price1 = await queryPrice(getTokenName(token1))
 
 	history.addressId = who.toString();
 	history.poolId = poolId;
-	history.token0Id = forceToCurrencyName(token0);
-	history.token1Id = forceToCurrencyName(token1);
+	history.token0Id = getTokenName(token0);
+	history.token1Id = getTokenName(token1);
 	history.token0InAmount = BigInt(supplyAmount.toString());
 	history.token1OutAmount = BigInt(targetAmount.toString());
-	history.tradePath = tradingPath.map(token => forceToCurrencyName(token)).join(',');
+	history.tradePath = tradingPath.map(token => getTokenName(token)).join(',');
 	history.amounts = amounts;
 	history.price0 = BigInt(price0.toChainData())
 	history.price1 = BigInt(price1.toChainData())
