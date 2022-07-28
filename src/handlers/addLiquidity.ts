@@ -1,9 +1,10 @@
-import { forceToCurrencyName, FixedPointNumber as FN } from "@acala-network/sdk-core";
+import { FixedPointNumber as FN } from "@acala-network/sdk-core";
 import { AccountId, Balance, CurrencyId } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
 import { getAccount, getAddLiquidity, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getStartOfDay, getStartOfHour, getToken, getTokenDailyData, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
+import { getTokenName } from '../utils/getTokenName';
 import { getTotalTVL } from "../utils/getTotalTVL";
 
 export const addLiquidity = async (event: SubstrateEvent) => {
@@ -12,8 +13,8 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	const blockData = await ensureBlock(event);
 
 	const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
-	const token0Increment = (token0Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
-	const token1Increment = (token1Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
+	const token0Increment = (token0Name === getTokenName(currency0) ? pool0Increment : pool1Increment).toString();
+	const token1Increment = (token1Name === getTokenName(currency0) ? pool0Increment : pool1Increment).toString();
 	const oldPrice0 = await queryPrice(token0Name);
 	const oldPrice1 = await queryPrice(token1Name);
 	const hourTime = getStartOfHour(blockData.timestamp);
@@ -179,8 +180,8 @@ export const createAddLiquidyHistory = async (event: SubstrateEvent, price0: FN,
 	const blockData = await ensureBlock(event);
 
 	const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
-	const token0Increment = (token0Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
-	const token1Increment = (token1Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
+	const token0Increment = (token0Name === getTokenName(currency0) ? pool0Increment : pool1Increment).toString();
+	const token1Increment = (token1Name === getTokenName(currency0) ? pool0Increment : pool1Increment).toString();
 
 	const historyId = `${blockData.hash}-${event.idx}`;
 	const history = await getAddLiquidity(historyId);
