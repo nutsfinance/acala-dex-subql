@@ -1,14 +1,21 @@
-specVersion: 0.2.0
-name: acala-dex
+specVersion: 1.0.0
+name: karura-tokens
 version: 1.0.0
-description: ''
-repository: ''
-schema:
-  file: ./schema.graphql
+description: 'statistics tokens data of karura network'
+repository: 'https://github.com/AcalaNetwork/acala-tokens-subql'
+runner:
+  node:
+    name: "@subql/node"
+    version: "1.2.1"
+  query:
+    name: "@subql/query"
+    version: "1.2.0"
+schema: 
+    file: ./schema.graphql
 network:
-  genesisHash: '0xfc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c'
-  endpoint: wss://acala-fullnode-01.bdnodes.net:8443/parachain?auth=fmxRFPt9l5OB5Yu42TOmdT25VTSKr0ixx5YDzgrN1n0
-  dictionary: https://api.subquery.network/sq/subquery/acala-dictionary
+  chainId: '0xbaf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b'
+  dictionary: https://api.subquery.network/sq/subquery/karura-dictionary
+  endpoint: wss://karura.api.onfinality.io/public-ws
   chaintypes:
     file: './src/chain-types.js'
 dataSources:

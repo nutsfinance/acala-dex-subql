@@ -1,5 +1,6 @@
-import { FixedPointNumber as FN, forceToCurrencyName, MaybeCurrency, Token } from "@acala-network/sdk-core";
+import { FixedPointNumber as FN, MaybeCurrency, Token } from "@acala-network/sdk-core";
 import { getPool, getToken } from ".";
+import { getTokenName } from './getTokenName';
 
 const getOtherPrice = async (token: string, stakingCurrency: string, StableCurrency: string) => {
 	const { rate: rateA, amount: _amountA } = await getPriceFromDexPool(token, stakingCurrency);
@@ -58,21 +59,31 @@ const getDOTPrice = async () => {
 	return dotPrice.rate.mul(lc13Price.rate);
 }
 
+const getTAIPrice = async (stakingCurrency: string, stableCurrency: string) => {
+	// Use KSM price for taiKSM
+	const ksmPrice = await getStakingCurrencyPrice(stakingCurrency, stableCurrency);
+	const taiPrice = await getPriceFromDexPool('TAI', 'sa://0');
+
+	return taiPrice.rate.mul(ksmPrice);
+}
+
 export const circulatePrice = async (name: MaybeCurrency) => {
-	const _name = forceToCurrencyName(name);
+	const _name = getTokenName(name);
 
 	const stakingCurrency = api.consts.prices.getStakingCurrencyId;
-	const StableCurrency = api.consts.prices.getStableCurrencyId;
-	const stakingCurrencyName = forceToCurrencyName(stakingCurrency);
-	const StableCurrencyName = forceToCurrencyName(StableCurrency);
+	const stableCurrency = api.consts.prices.getStableCurrencyId;
+	const stakingCurrencyName = getTokenName(stakingCurrency as any);
+	const stableCurrencyName = getTokenName(stableCurrency as any);
 
 	if (_name === "KUSD" || _name === "AUSD") return getStableCurrencyPrice();
 
-	else if (_name === 'KSM') return getStakingCurrencyPrice(stakingCurrencyName, StableCurrencyName);
+	else if (_name === 'KSM') return getStakingCurrencyPrice(stakingCurrencyName, stableCurrencyName);
 
 	else if (_name === 'DOT') return getDOTPrice();
 
-	else return getOtherPrice(_name, stakingCurrencyName, StableCurrencyName);
+	else if (_name === "TAI") return getTAIPrice(stakingCurrencyName, stableCurrencyName);
+
+	else return getOtherPrice(_name, stakingCurrencyName, stableCurrencyName);
 }
 
 export const queryPrice = async (token: string) => {

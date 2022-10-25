@@ -1,18 +1,20 @@
-import { forceToCurrencyName, FixedPointNumber as FN } from "@acala-network/sdk-core";
+import { FixedPointNumber as FN } from "@acala-network/sdk-core";
 import { AccountId, Balance, CurrencyId } from "@acala-network/types/interfaces";
 import { SubstrateEvent } from "@subql/types";
 import { ensureBlock, ensureExtrinsic } from ".";
 import { getAccount, getAddLiquidity, getDailyDex, getDailyPool, getDex, getHourDex, getHourlyPool, getPool, getStartOfDay, getStartOfHour, getToken, getTokenDailyData, queryPrice } from "../utils";
 import { getPoolId } from "../utils/getPoolId";
+import { getTokenName } from '../utils/getTokenName';
 import { getTotalTVL } from "../utils/getTotalTVL";
 
 export const addLiquidity = async (event: SubstrateEvent) => {
 	// [who, currency_id_0, pool_0_increment, currency_id_1, pool_1_increment, share_increment\]
 	const [_, currency0, pool0Increment, currency1, pool1Increment] = event.event.data as unknown as [AccountId, CurrencyId, Balance, CurrencyId, Balance];
 	const blockData = await ensureBlock(event);
+
 	const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
-	const token0Increment = (token0Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
-	const token1Increment = (token1Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
+	const token0Increment = (token0Name === getTokenName(currency0) ? pool0Increment : pool1Increment).toString();
+	const token1Increment = (token1Name === getTokenName(currency0) ? pool0Increment : pool1Increment).toString();
 	const oldPrice0 = await queryPrice(token0Name);
 	const oldPrice1 = await queryPrice(token1Name);
 	const hourTime = getStartOfHour(blockData.timestamp);
@@ -48,6 +50,8 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	const newPool = await getPool(token0Name, token1Name, poolId);
 	newPool.token0TVL = BigInt(newPrice0.times(FN.fromInner(newPool.token0Amount.toString(), token0.decimals)).toChainData());
 	newPool.token1TVL = BigInt(newPrice1.times(FN.fromInner(newPool.token1Amount.toString(), token1.decimals)).toChainData());
+	newPool.token0Price = BigInt(newPrice0.toChainData());
+	newPool.token1Price = BigInt(newPrice1.toChainData());
 	newPool.totalTVL = getTotalTVL(newPool.token0TVL, newPool.token1TVL);
 	await newPool.save();
 
@@ -71,10 +75,10 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	hourPool.totalTVL = getTotalTVL(hourPool.token0TVL, hourPool.token1TVL);
 	hourPool.txCount = hourPool.txCount + BigInt(1);
 	hourPool.token0High = hourPool.token0High > BigInt(newPrice0.toChainData()) ? hourPool.token0High : BigInt(newPrice0.toChainData());
-	hourPool.token0Low = hourPool.token0Low < BigInt(newPrice0.toChainData()) ? hourPool.token0Low : BigInt(newPrice0.toChainData());
+	hourPool.token0Low = hourPool.token0Low === BigInt(0) ? BigInt(newPrice0.toChainData()) : (hourPool.token0Low < BigInt(newPrice0.toChainData()) ? hourPool.token0Low : BigInt(newPrice0.toChainData()));
 	hourPool.token0Close = BigInt(newPrice0.toChainData());
 	hourPool.token1High = hourPool.token1High > BigInt(newPrice1.toChainData()) ? hourPool.token1High : BigInt(newPrice1.toChainData());
-	hourPool.token1Low = hourPool.token1Low < BigInt(newPrice1.toChainData()) ? hourPool.token1Low : BigInt(newPrice1.toChainData());
+	hourPool.token1Low = hourPool.token1Low === BigInt(0) ? BigInt(newPrice1.toChainData()) : (hourPool.token1Low < BigInt(newPrice1.toChainData()) ? hourPool.token1Low : BigInt(newPrice1.toChainData()));
 	hourPool.token1Close = BigInt(newPrice1.toChainData());
 	hourPool.updateAtBlockId = blockData.id;
 	await hourPool.save();
@@ -99,10 +103,10 @@ export const addLiquidity = async (event: SubstrateEvent) => {
 	dailyPool.totalTVL = getTotalTVL(dailyPool.token0TVL, dailyPool.token1TVL);
 	dailyPool.txCount = dailyPool.txCount + BigInt(1);
 	dailyPool.token0High = dailyPool.token0High > BigInt(newPrice0.toChainData()) ? dailyPool.token0High : BigInt(newPrice0.toChainData());
-	dailyPool.token0Low = dailyPool.token0Low < BigInt(newPrice0.toChainData()) ? dailyPool.token0Low : BigInt(newPrice0.toChainData());
+	dailyPool.token0Low = dailyPool.token0Low === BigInt(0) ? BigInt(newPrice0.toChainData()) : (dailyPool.token0Low < BigInt(newPrice0.toChainData()) ? dailyPool.token0Low : BigInt(newPrice0.toChainData()));
 	dailyPool.token0Close = BigInt(newPrice0.toChainData());
 	dailyPool.token1High = dailyPool.token1High > BigInt(newPrice1.toChainData()) ? dailyPool.token1High : BigInt(newPrice1.toChainData());
-	dailyPool.token1Low = dailyPool.token1Low < BigInt(newPrice1.toChainData()) ? dailyPool.token1Low : BigInt(newPrice1.toChainData());
+	dailyPool.token1Low = dailyPool.token1Low === BigInt(0) ? BigInt(newPrice1.toChainData()) : (dailyPool.token1Low < BigInt(newPrice1.toChainData()) ? dailyPool.token1Low : BigInt(newPrice1.toChainData()));
 	dailyPool.token1Close = BigInt(newPrice1.toChainData());
 	dailyPool.updateAtBlockId = blockData.id;
 	await dailyPool.save();
@@ -176,10 +180,10 @@ export const createAddLiquidyHistory = async (event: SubstrateEvent, price0: FN,
 	const blockData = await ensureBlock(event);
 
 	const [poolId, token0Name, token1Name] = getPoolId(currency0, currency1);
-	const token0Increment = (token0Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
-	const token1Increment = (token1Name === forceToCurrencyName(currency0) ? pool0Increment : pool1Increment).toString();
+	const token0Increment = (token0Name === getTokenName(currency0) ? pool0Increment : pool1Increment).toString();
+	const token1Increment = (token1Name === getTokenName(currency0) ? pool0Increment : pool1Increment).toString();
 
-	const historyId = `${blockData.hash}-${event.event.index.toString()}`;
+	const historyId = `${blockData.hash}-${event.idx}`;
 	const history = await getAddLiquidity(historyId);
 	history.addressId = owner.toString();
 	history.poolId = poolId;
